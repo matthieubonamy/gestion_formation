@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+body{width:1000px;height:700px;background:#eef2f7;overflow:hidden;position:relative;}
+.canvas{position:absolute;inset:0;}
+/* fenêtre navigateur */
+.win{position:absolute;top:30px;left:40px;right:40px;bottom:30px;background:#fff;border-radius:12px;box-shadow:0 18px 50px rgba(15,23,42,.18);overflow:hidden;border:1px solid #e2e8f0;}
+.chrome{height:46px;background:#f1f5f9;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;padding:0 14px;}
+.dot{width:12px;height:12px;border-radius:50%;}
+.url{flex:1;margin-left:10px;background:#fff;border:1px solid #e2e8f0;border-radius:20px;height:28px;display:flex;align-items:center;padding:0 14px;color:#334155;font-size:13px;}
+.url b{color:#0f172a;}
+.body{padding:26px 30px;height:calc(100% - 46px);position:relative;}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;}
+h1{font-size:24px;margin:14px 0 6px;color:#0f172a;}
+p.lead{color:#475569;font-size:14px;margin-bottom:18px;}
+.field{background:#fff;border:1px solid #cbd5e1;border-radius:8px;height:42px;display:flex;align-items:center;padding:0 12px;color:#94a3b8;font-size:14px;margin:10px 0;max-width:440px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:8px;color:#fff;font-weight:700;font-size:14px;}
+.btn.green{background:#16a34a;} .btn.black{background:#0f172a;} .btn.blue{background:#2563eb;} .btn.emerald{background:#059669;}
+/* surbrillance + bulle d'annotation */
+.ring{position:absolute;border:3px solid #ef4444;border-radius:10px;box-shadow:0 0 0 4px rgba(239,68,68,.18);}
+.note{position:absolute;background:#ef4444;color:#fff;font-size:13px;font-weight:700;padding:7px 12px;border-radius:8px;max-width:230px;line-height:1.3;box-shadow:0 8px 20px rgba(239,68,68,.35);}
+.note::after{content:"";position:absolute;width:0;height:0;border:8px solid transparent;}
+.note.left::after{left:-14px;top:14px;border-right-color:#ef4444;}
+.note.down::after{bottom:-14px;left:18px;border-top-color:#ef4444;}
+.note.up::after{top:-14px;left:18px;border-bottom-color:#ef4444;}
+.step-badge{position:absolute;width:30px;height:30px;border-radius:50%;background:#ef4444;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;box-shadow:0 4px 10px rgba(239,68,68,.4);}
+.tablerow{display:grid;grid-template-columns:1.4fr 1fr .8fr 1fr;gap:0;border-bottom:1px solid #eef2f7;padding:11px 8px;font-size:13px;color:#334155;align-items:center;}
+.tablehead{background:#f8fafc;font-weight:700;color:#475569;border-radius:8px 8px 0 0;}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;}
+.b-green{background:#dcfce7;color:#166534;} .b-amber{background:#fef3c7;color:#92400e;} .b-blue{background:#dbeafe;color:#1e40af;} .b-grey{background:#e2e8f0;color:#334155;} .b-red{background:#fee2e2;color:#991b1b;}
+.menu{position:absolute;left:0;top:0;bottom:0;width:200px;background:#0f172a;color:#cbd5e1;padding:18px 12px;}
+.menu .logo{color:#fff;font-weight:800;font-size:15px;margin:4px 8px 18px;}
+.menu a{display:block;padding:9px 12px;border-radius:8px;font-size:13.5px;color:#cbd5e1;margin:3px 0;}
+.menu a.on{background:#1e293b;color:#fff;}
+.app{position:absolute;inset:0;background:#f1f5f9;}
+.appbar{height:54px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;padding:0 20px 0 220px;font-weight:700;color:#0f172a;}
+.content{position:absolute;left:200px;right:0;top:0;bottom:0;padding:20px 24px;overflow:hidden;}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+.kpi{background:#fff;border:1px solid #e8edf3;border-radius:12px;padding:14px 16px;}
+.kpi .n{font-size:26px;font-weight:800;color:#0f172a;} .kpi .l{font-size:12px;color:#64748b;margin-top:2px;}
+.panel{background:#fff;border:1px solid #e8edf3;border-radius:12px;padding:8px 12px 14px;}
+.toolbar{display:flex;gap:10px;align-items:center;margin:6px 0 12px;}
+.search{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;height:38px;display:flex;align-items:center;padding:0 12px;color:#94a3b8;font-size:13px;}
+.cap{position:absolute;left:40px;bottom:6px;font-size:12px;color:#64748b;}
+.tag-illus{position:absolute;top:8px;right:46px;background:#0f172a;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;opacity:.85;}
+</style></head><body><div class="canvas">
+   <div class="tag-illus">ILLUSTRATION (pas une capture réelle)</div>
+   <div class="win">
+     <div class="chrome"><span class="dot" style="background:#f87171"></span><span class="dot" style="background:#fbbf24"></span><span class="dot" style="background:#34d399"></span>
+       <div class="url">🔒 github.com/signup</div>
+     </div>
+     <div class="body"><div class="brand">🐙 GitHub</div>
+   <h1>Welcome to GitHub</h1>
+   <p class="lead">Let's begin the adventure — crée ton compte gratuit.</p>
+   <div style="max-width:440px">
+     <div class="field">Enter your email…</div>
+     <div class="field">Create a password…</div>
+     <div class="field">Enter a username…</div>
+     <div style="margin-top:8px"><span class="btn green">Continue →</span></div>
+   </div><div class="ring" style="left:28px;top:212px;width:444px;height:42px;"></div>
+   <div class="note up" style="left:30px;top:268px;">2 — Remplis email, mot de passe, puis un nom d'utilisateur</div>
+   <div class="ring" style="left:28px;top:330px;width:128px;height:42px;"></div>
+   <div class="step-badge" style="left:170px;top:336px;">3</div>
+   <div class="note left" style="left:214px;top:332px;">Clique « Continue », puis valide le code reçu par email</div></div>
+   </div></div></body></html>

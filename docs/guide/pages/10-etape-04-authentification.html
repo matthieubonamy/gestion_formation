@@ -37,6 +37,9 @@ pre code{background:none;color:inherit;padding:0;}
 .check span{font-size:14.5px;}
 .pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
 .pill.green{background:var(--green);}
+.fig{margin:14px 0;}
+.fig img{width:100%;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,.10);display:block;}
+.fig figcaption{font-size:12.5px;color:var(--grey);margin-top:6px;text-align:center;font-style:italic;}
 .bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
 .bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
 .bro p{margin:4px 0;color:#451a03;}
@@ -80,11 +83,13 @@ pre code{background:none;color:inherit;padding:0;}
      <div style="color:var(--grey);font-size:14px;margin-bottom:8px">Le portier de l'app</div>
      <p>On met une page de connexion et on protège les autres pages.</p>
 <h3>1) Créer ton compte admin dans Supabase (clic par clic)</h3>
+<figure class="fig"><img src="../img/site-supabase-user.png" alt="Authentication → Users : on clique « Add user » pour créer ton compte admin." loading="lazy"><figcaption>Authentication → Users : on clique « Add user » pour créer ton compte admin.</figcaption></figure>
 <ol class="steps"><li>Dashboard Supabase → menu de gauche <strong>« Authentication »</strong> → onglet <strong>« Users »</strong>.</li><li>Clique <strong>« Add user »</strong> → <strong>« Create new user »</strong>.</li><li>Saisis ton <strong>email</strong> et un <strong>mot de passe</strong> (note-le), coche « Auto Confirm User », clique <strong>Create user</strong>.</li></ol>
 <div class="verif">✅ <strong>Vérifie :</strong> Ton email apparaît dans la liste des utilisateurs ✅.</div>
 <label class="check"><input type="checkbox" data-key="e4a"><span>Mon compte admin existe dans Supabase</span></label>
 <h3>2) Créer la page de connexion + la protection</h3>
-<p>Là, c'est du code. Le plus simple et fiable pour un débutant : demander à Claude Code de l'écrire, puis vérifier.</p>
+<figure class="fig"><img src="../img/app-login.png" alt="À quoi ressemblera ton écran de connexion (maquette)." loading="lazy"><figcaption>À quoi ressemblera ton écran de connexion (maquette).</figcaption></figure>
+<p>Là, c'est du code. Le plus simple et fiable pour un débutant : demander à Codex (ou Claude Code) de l'écrire, puis vérifier.</p>
 <div class="prompt"><div class="prompt-h">🤖 Prompt à copier-coller dans Codex (ou Claude Code)</div><div class="codewrap"><button class="copy" type="button">Copier</button><pre><code>Dans ce projet Next.js (App Router) avec @supabase/ssr déjà installé, crée une page de connexion sur /login (email + mot de passe) qui utilise Supabase Auth, et un middleware qui protège toutes les pages sauf /login en redirigeant les visiteurs non connectés vers /login. Ajoute aussi un bouton de déconnexion. Explique-moi simplement ce que tu as créé.</code></pre></div></div>
 <div class="callout">Un <strong>middleware</strong> est un videur à l'entrée : il vérifie le badge avant de laisser voir la page.</div>
 <div class="verif">✅ <strong>Vérifie :</strong> Lance <code>npm run dev</code>. Va sur http://localhost:3000/dashboard SANS être connecté → tu es renvoyé vers /login. Connecte-toi → tu entres. ✅</div>

@@ -37,6 +37,9 @@ pre code{background:none;color:inherit;padding:0;}
 .check span{font-size:14.5px;}
 .pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
 .pill.green{background:var(--green);}
+.fig{margin:14px 0;}
+.fig img{width:100%;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,.10);display:block;}
+.fig figcaption{font-size:12.5px;color:var(--grey);margin-top:6px;text-align:center;font-style:italic;}
 .bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
 .bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
 .bro p{margin:4px 0;color:#451a03;}
@@ -82,6 +85,7 @@ pre code{background:none;color:inherit;padding:0;}
 <p>Trois comptes suffisent. <strong>Conseil :</strong> utilise <strong>la même adresse email</strong> partout, et laisse ton navigateur <strong>enregistrer les mots de passe</strong>.</p>
 
 <h3>Compte 1 — GitHub (héberge le code)</h3>
+<figure class="fig"><img src="../img/site-github.png" alt="Le formulaire d'inscription GitHub : email, mot de passe, nom d'utilisateur, puis « Continue »." loading="lazy"><figcaption>Le formulaire d'inscription GitHub : email, mot de passe, nom d'utilisateur, puis « Continue ».</figcaption></figure>
 <ol class="steps"><li>Va sur <a class="ext" href="https://github.com/signup" target="_blank" rel="noopener">https://github.com/signup</a>.</li><li>Saisis ton <strong>email</strong>, clique <strong>Continue</strong>.</li><li>Choisis un <strong>mot de passe</strong> (note-le), clique <strong>Continue</strong>.</li><li>Choisis un <strong>nom d'utilisateur</strong> (ex. <code>franck-formation</code>), clique <strong>Continue</strong>.</li><li>Résous le petit puzzle de vérification, puis clique <strong>Create account</strong>.</li><li>GitHub envoie un <strong>code par email</strong> : ouvre ta boîte mail, recopie le code dans GitHub.</li><li>Aux questions « how many people / student / interests », tu peux cliquer <strong>Skip</strong> en bas. Choisis le plan <strong>Free</strong>.</li></ol>
 <div class="verif">✅ <strong>Vérifie :</strong> Tu arrives sur ton tableau de bord GitHub (page d'accueil avec « Dashboard »). Ton compte est créé ✅.</div>
 <p><strong>Sécurité (important) :</strong> active la double authentification.</p>
@@ -91,6 +95,7 @@ pre code{background:none;color:inherit;padding:0;}
 
 <h3>Compte 2 — Supabase (base de données + mots de passe de l'app)</h3>
 <div class="callout"><strong>Supabase</strong> te donne d'un coup : la base de données (le grand classeur), l'authentification (le portier), le stockage et les sauvegardes. Gratuit pour démarrer.</div>
+<figure class="fig"><img src="../img/site-supabase-new.png" alt="L'écran de création de projet Supabase : nom, mot de passe de la base (à noter !), région, puis « Create new project »." loading="lazy"><figcaption>L'écran de création de projet Supabase : nom, mot de passe de la base (à noter !), région, puis « Create new project ».</figcaption></figure>
 <ol class="steps"><li>Va sur <a class="ext" href="https://supabase.com" target="_blank" rel="noopener">https://supabase.com</a> et clique <strong>Start your project</strong> (en haut à droite).</li><li>Clique <strong>Continue with GitHub</strong> (le plus simple, ça réutilise ton compte GitHub). Autorise en cliquant <strong>Authorize</strong>.</li><li>Tu arrives sur le tableau de bord Supabase. Clique <strong>New project</strong>.</li><li>Si on te demande de créer une <strong>Organization</strong> : donne un nom (ex. le nom de ton organisme), choisis le type <strong>Personal</strong> et le plan <strong>Free</strong>, clique <strong>Create organization</strong>.</li><li>Pour le projet : <strong>Name</strong> = <code>gestion-formation</code>. <strong>Database Password</strong> = clique « Generate a password » et <strong>copie-le précieusement</strong> (colle-le dans tes notes). <strong>Region</strong> = choisis <strong>Central EU (Frankfurt)</strong> ou <strong>West EU (Paris)</strong> — proche de toi.</li><li>Clique <strong>Create new project</strong>. Patiente 1 à 2 minutes (Supabase prépare ta base).</li></ol>
 <div class="verif">✅ <strong>Vérifie :</strong> Tu vois le tableau de bord du projet avec un menu à gauche (Table Editor, SQL Editor, Authentication…). C'est prêt ✅.</div>
 <div class="warnbox">⚠️ Sur le plan gratuit, un projet est <strong>mis en pause après 1 semaine sans activité</strong>. On le réactive en 1 clic (bouton « Restore »). Pour une mise en service continue, on passera au plan payant — à voir avec ton employeur (page « Coûts »).</div>
@@ -98,6 +103,7 @@ pre code{background:none;color:inherit;padding:0;}
 
 <h3>Compte 3 — Vercel (met l'app en ligne)</h3>
 <div class="callout"><strong>Vercel</strong> publie l'application sur Internet à partir du code GitHub, tout seul à chaque modification.</div>
+<figure class="fig"><img src="../img/site-vercel.png" alt="Plus tard, l'écran d'import Vercel : importer le dépôt, coller les 2 clés Supabase, puis « Deploy »." loading="lazy"><figcaption>Plus tard, l'écran d'import Vercel : importer le dépôt, coller les 2 clés Supabase, puis « Deploy ».</figcaption></figure>
 <ol class="steps"><li>Va sur <a class="ext" href="https://vercel.com/signup" target="_blank" rel="noopener">https://vercel.com/signup</a>.</li><li>Clique <strong>Continue with GitHub</strong>, puis <strong>Authorize Vercel</strong>.</li><li>Choisis le plan <strong>Hobby</strong> (gratuit) pour l'instant. Renseigne un nom si demandé, clique <strong>Continue</strong>.</li></ol>
 <div class="verif">✅ <strong>Vérifie :</strong> Tu arrives sur le tableau de bord Vercel (vide pour l'instant, c'est normal). Compte prêt ✅.</div>
 <div class="warnbox">⚠️ Le plan <strong>gratuit (Hobby)</strong> de Vercel est prévu pour un usage <strong>non-commercial</strong> : parfait pour <em>tester et faire une démo</em>. Pour une utilisation pro réelle, il faudra le plan <strong>Pro</strong> — décision à prendre avec ton employeur (page « Coûts »).</div>

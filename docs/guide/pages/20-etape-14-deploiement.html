@@ -37,6 +37,9 @@ pre code{background:none;color:inherit;padding:0;}
 .check span{font-size:14.5px;}
 .pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
 .pill.green{background:var(--green);}
+.fig{margin:14px 0;}
+.fig img{width:100%;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,.10);display:block;}
+.fig figcaption{font-size:12.5px;color:var(--grey);margin-top:6px;text-align:center;font-style:italic;}
 .bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
 .bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
 .bro p{margin:4px 0;color:#451a03;}
@@ -87,6 +90,7 @@ git push</code></pre></div>
 <h3>2) Importer dans Vercel</h3>
 <ol class="steps"><li>Va sur <a class="ext" href="https://vercel.com/new" target="_blank" rel="noopener">https://vercel.com/new</a>.</li><li>Trouve ton dépôt <code>gestion_formation</code> dans la liste, clique <strong>Import</strong>. (Si tu ne le vois pas : clique « Adjust GitHub App Permissions » et autorise le dépôt.)</li><li>À la section <strong>Environment Variables</strong>, ajoute tes 2 clés (les mêmes que .env.local) :</li></ol>
 <table><thead><tr><th>Name</th><th>Value</th></tr></thead><tbody><tr><td>NEXT_PUBLIC_SUPABASE_URL</td><td>ton URL Supabase</td></tr><tr><td>NEXT_PUBLIC_SUPABASE_ANON_KEY</td><td>ta clé anon</td></tr></tbody></table>
+<figure class="fig"><img src="../img/site-vercel.png" alt="L'écran d'import Vercel : importer le dépôt, coller les 2 clés, puis « Deploy »." loading="lazy"><figcaption>L'écran d'import Vercel : importer le dépôt, coller les 2 clés, puis « Deploy ».</figcaption></figure>
 <ol class="steps"><li>Clique <strong>Deploy</strong> et patiente 1-2 minutes.</li></ol>
 <div class="verif">✅ <strong>Vérifie :</strong> Vercel affiche « Congratulations » avec une adresse en <code>.vercel.app</code>. Ouvre-la sur ton téléphone : ton app est en ligne ! ✅</div>
 <h3>Revenir en arrière si ça casse</h3>

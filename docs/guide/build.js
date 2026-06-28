@@ -72,6 +72,10 @@ function table(headers, rows) {
   const r = rows.map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
   return `<table><thead><tr>${h}</tr></thead><tbody>${r}</tbody></table>`;
 }
+// Image illustrée (les fichiers sont dans ../img depuis pages/ et pdf/)
+function img(name, caption) {
+  return `<figure class="fig"><img src="../img/${name}.png" alt="${esc(caption || name)}" loading="lazy"><figcaption>${caption || ""}</figcaption></figure>`;
+}
 // Fabrique une notice "étape du projet"
 function step(num, slug, title, sub, body) {
   return {
@@ -172,6 +176,7 @@ ${check("project-understood", "J'ai compris ce que fait l'application")}
 ${callout(
   "<strong>Node.js</strong> fait tourner le code de l'application sur ton ordinateur. Il vient avec <strong>npm</strong>, l'outil qui télécharge les briques toutes faites du projet."
 )}
+${img("site-node", "À quoi ressemble la page de téléchargement de Node.js — clique le gros bouton « LTS ».")}
 ${ol([
   `Ouvre ton navigateur (Edge, Chrome…) et va sur ${link("https://nodejs.org/en/download", "https://nodejs.org/en/download")}.`,
   "Repère le bouton avec la mention <strong>« LTS »</strong> (= la version stable, recommandée). Clique dessus pour télécharger le fichier <code>.msi</code> Windows.",
@@ -227,6 +232,7 @@ ${bro(
 <p>Trois comptes suffisent. <strong>Conseil :</strong> utilise <strong>la même adresse email</strong> partout, et laisse ton navigateur <strong>enregistrer les mots de passe</strong>.</p>
 
 <h3>Compte 1 — GitHub (héberge le code)</h3>
+${img("site-github", "Le formulaire d'inscription GitHub : email, mot de passe, nom d'utilisateur, puis « Continue ».")}
 ${ol([
   `Va sur ${link("https://github.com/signup", "https://github.com/signup")}.`,
   "Saisis ton <strong>email</strong>, clique <strong>Continue</strong>.",
@@ -251,6 +257,7 @@ ${callout(
 ${callout(
   "<strong>Supabase</strong> te donne d'un coup : la base de données (le grand classeur), l'authentification (le portier), le stockage et les sauvegardes. Gratuit pour démarrer."
 )}
+${img("site-supabase-new", "L'écran de création de projet Supabase : nom, mot de passe de la base (à noter !), région, puis « Create new project ».")}
 ${ol([
   `Va sur ${link("https://supabase.com", "https://supabase.com")} et clique <strong>Start your project</strong> (en haut à droite).`,
   "Clique <strong>Continue with GitHub</strong> (le plus simple, ça réutilise ton compte GitHub). Autorise en cliquant <strong>Authorize</strong>.",
@@ -267,6 +274,7 @@ ${check("supabase-ok", "Mon projet Supabase est créé et le mot de passe de la 
 
 <h3>Compte 3 — Vercel (met l'app en ligne)</h3>
 ${callout("<strong>Vercel</strong> publie l'application sur Internet à partir du code GitHub, tout seul à chaque modification.")}
+${img("site-vercel", "Plus tard, l'écran d'import Vercel : importer le dépôt, coller les 2 clés Supabase, puis « Deploy ».")}
 ${ol([
   `Va sur ${link("https://vercel.com/signup", "https://vercel.com/signup")}.`,
   "Clique <strong>Continue with GitHub</strong>, puis <strong>Authorize Vercel</strong>.",
@@ -449,6 +457,7 @@ ${check("e1", "J'ai lu l'analyse du besoin et je suis d'accord avec le périmèt
   step(2, "schema-bdd", "Schéma de base de données", "Déjà fait ✅ — à APPLIQUER dans Supabase (clic par clic)",
 `<p><span class="pill green">Déjà fait</span> Le plan des 12 tables est écrit dans <code>db/schema.sql</code>. Voici comment le <strong>créer pour de vrai</strong> dans ta base Supabase.</p>
 <h3>Étape par étape</h3>
+${img("site-supabase-sql", "Le « SQL Editor » de Supabase : on colle le schéma dans la zone noire, puis on clique « Run ».")}
 ${ol([
   "Récupère le contenu du fichier <code>db/schema.sql</code> : sur GitHub, ouvre le dépôt → dossier <code>db</code> → clique <code>schema.sql</code> → clique le bouton <strong>« Raw »</strong> → sélectionne tout (Ctrl+A) → copie (Ctrl+C).",
   `Va sur ${link("https://supabase.com/dashboard", "https://supabase.com/dashboard")} et ouvre ton projet <code>gestion-formation</code>.`,
@@ -491,6 +500,7 @@ ${bro("Cette étape « technique » est typiquement celle où on appelle un pote
   step(4, "authentification", "Authentification (connexion admin)", "Le portier de l'app",
 `<p>On met une page de connexion et on protège les autres pages.</p>
 <h3>1) Créer ton compte admin dans Supabase (clic par clic)</h3>
+${img("site-supabase-user", "Authentication → Users : on clique « Add user » pour créer ton compte admin.")}
 ${ol([
   "Dashboard Supabase → menu de gauche <strong>« Authentication »</strong> → onglet <strong>« Users »</strong>.",
   "Clique <strong>« Add user »</strong> → <strong>« Create new user »</strong>.",
@@ -499,7 +509,8 @@ ${ol([
 ${verif("Ton email apparaît dans la liste des utilisateurs ✅.")}
 ${check("e4a", "Mon compte admin existe dans Supabase")}
 <h3>2) Créer la page de connexion + la protection</h3>
-<p>Là, c'est du code. Le plus simple et fiable pour un débutant : demander à Claude Code de l'écrire, puis vérifier.</p>
+${img("app-login", "À quoi ressemblera ton écran de connexion (maquette).")}
+<p>Là, c'est du code. Le plus simple et fiable pour un débutant : demander à Codex (ou Claude Code) de l'écrire, puis vérifier.</p>
 ${promptClaude("Dans ce projet Next.js (App Router) avec @supabase/ssr déjà installé, crée une page de connexion sur /login (email + mot de passe) qui utilise Supabase Auth, et un middleware qui protège toutes les pages sauf /login en redirigeant les visiteurs non connectés vers /login. Ajoute aussi un bouton de déconnexion. Explique-moi simplement ce que tu as créé.")}
 ${callout("Un <strong>middleware</strong> est un videur à l'entrée : il vérifie le badge avant de laisser voir la page.")}
 ${verif("Lance <code>npm run dev</code>. Va sur http://localhost:3000/dashboard SANS être connecté → tu es renvoyé vers /login. Connecte-toi → tu entres. ✅")}
@@ -511,6 +522,8 @@ ${bro("L'authentification impressionne sur le papier, mais Supabase fait 90 % du
 `<p>Liste, ajout, modification, suppression, recherche et filtres des personnes.</p>
 <h3>Pages à créer</h3>
 ${table(["Adresse", "Rôle"], [["/people", "Liste + recherche + filtre par statut"], ["/people/new", "Formulaire d'ajout"], ["/people/[id]", "Détail + modification + suppression"]])}
+${img("app-people", "Maquette de la liste des personnes : recherche, filtre, ajout, export.")}
+${img("app-person-form", "Maquette du formulaire d'ajout/modification d'une personne.")}
 <h3>La façon simple de les créer</h3>
 ${promptClaude("Crée le module Personnes pour ce projet Next.js + Supabase. Table 'people' (champs : first_name, last_name, email, phone, status [prospect|inscrit|client|archive], source, notes, created_at). Pages : /people (liste avec barre de recherche par nom et filtre par statut), /people/new (formulaire d'ajout), /people/[id] (détail + modification + suppression). Refuse l'enregistrement si first_name ou last_name est vide, avec un message clair. Style simple et responsive (mobile). Explique-moi comment tester.")}
 ${verif("Sur /people : j'ajoute « Sophie Martin », elle apparaît dans la liste ; je la cherche, je la modifie, je la supprime. ✅")}
@@ -528,6 +541,7 @@ ${check("e6", "Je gère mes formations de bout en bout")}`),
   step(7, "module-inscriptions", "Module Inscriptions", "Relier personne et formation",
 `<p>On relie une personne à une formation et on suit ses statuts.</p>
 <h3>Champs</h3><p>Personne, formation, statut d'inscription, statut de présence, statut de paiement, commentaire.</p>
+${img("app-enroll", "Maquette : sur la fiche d'une personne, ses inscriptions avec les 3 statuts modifiables.")}
 ${promptClaude("Sur la fiche d'une personne (/people/[id]), ajoute un bouton « Inscrire à une formation » qui crée une ligne dans la table 'enrollments' (person_id, course_id, enrollment_status, attendance_status, payment_status, comment). Affiche la liste des inscriptions de la personne avec des menus pour changer les 3 statuts. Empêche d'inscrire deux fois la même personne à la même formation, avec un message clair. Explique comment tester.")}
 ${verif("Depuis Sophie, je l'inscris à Excel ; je change son paiement de « impayé » à « payé » ; réessayer de l'inscrire à Excel affiche un message d'erreur clair. ✅")}
 ${check("e7", "Je peux inscrire une personne et suivre ses statuts")}`),
@@ -535,6 +549,7 @@ ${check("e7", "Je peux inscrire une personne et suivre ses statuts")}`),
   step(8, "mini-crm", "Mini-CRM (relances)", "Ne plus oublier personne",
 `<p>On gère les relances : quand, comment, priorité, historique.</p>
 <h3>Champs</h3><p>Date de prochaine relance, priorité, canal (email/téléphone/sms), statut commercial, compte-rendu.</p>
+${img("app-crm", "Maquette des relances : « à relancer aujourd'hui » et « en retard », avec priorité et canal.")}
 ${promptClaude("Crée un mini-CRM basé sur la table 'crm_followups' (person_id, next_followup_date, priority, channel, commercial_status, outcome, done). Permets d'ajouter une relance sur une personne, de la marquer « faite » (en gardant l'historique), et crée deux vues : /crm/today (relances dont la date est aujourd'hui ou avant, non faites) et /crm/late (relances en retard). Explique comment tester.")}
 ${verif("J'ajoute une relance pour demain, elle n'apparaît pas dans « aujourd'hui » ; j'en ajoute une pour hier, elle apparaît dans « en retard ». ✅")}
 ${check("e8", "Le CRM me dit qui relancer aujourd'hui et qui est en retard")}`),
@@ -542,6 +557,7 @@ ${check("e8", "Le CRM me dit qui relancer aujourd'hui et qui est en retard")}`),
   step(9, "tableau-de-bord", "Tableau de bord", "Les chiffres clés",
 `<p>Une page d'accueil qui résume tout.</p>
 <h3>Indicateurs</h3><p>Total personnes, prospects, inscrits, formations en cours, paiements en attente, relances du jour, relances en retard.</p>
+${img("app-dashboard", "Maquette du tableau de bord : les 7 chiffres clés en cartes.")}
 ${promptClaude("Crée une page /dashboard qui affiche 7 cartes chiffrées : nombre total de personnes, nombre de prospects, nombre d'inscrits, formations en cours, paiements en attente, relances du jour, relances en retard. Chaque carte fait une requête simple à Supabase. Design en grille, responsive. Explique comment tester.")}
 ${verif("Sur /dashboard, les chiffres correspondent à ce que j'ai saisi (ex. 1 prospect si j'ai créé Sophie en prospect). ✅")}
 ${check("e9", "Mon tableau de bord affiche les bons chiffres")}`),
@@ -602,6 +618,7 @@ ${ol([
   "À la section <strong>Environment Variables</strong>, ajoute tes 2 clés (les mêmes que .env.local) :",
 ])}
 ${table(["Name", "Value"], [["NEXT_PUBLIC_SUPABASE_URL", "ton URL Supabase"], ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "ta clé anon"]])}
+${img("site-vercel", "L'écran d'import Vercel : importer le dépôt, coller les 2 clés, puis « Deploy ».")}
 ${ol(["Clique <strong>Deploy</strong> et patiente 1-2 minutes."])}
 ${verif("Vercel affiche « Congratulations » avec une adresse en <code>.vercel.app</code>. Ouvre-la sur ton téléphone : ton app est en ligne ! ✅")}
 <h3>Revenir en arrière si ça casse</h3>
@@ -800,6 +817,9 @@ pre code{background:none;color:inherit;padding:0;}
 .check span{font-size:14.5px;}
 .pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
 .pill.green{background:var(--green);}
+.fig{margin:14px 0;}
+.fig img{width:100%;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,.10);display:block;}
+.fig figcaption{font-size:12.5px;color:var(--grey);margin-top:6px;text-align:center;font-style:italic;}
 .bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
 .bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
 .bro p{margin:4px 0;color:#451a03;}

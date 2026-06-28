@@ -37,6 +37,9 @@ pre code{background:none;color:inherit;padding:0;}
 .check span{font-size:14.5px;}
 .pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
 .pill.green{background:var(--green);}
+.fig{margin:14px 0;}
+.fig img{width:100%;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,.10);display:block;}
+.fig figcaption{font-size:12.5px;color:var(--grey);margin-top:6px;text-align:center;font-style:italic;}
 .bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
 .bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
 .bro p{margin:4px 0;color:#451a03;}
@@ -83,6 +86,7 @@ pre code{background:none;color:inherit;padding:0;}
 
 <h3>Logiciel 1 — Node.js (le moteur de l'app)</h3>
 <div class="callout"><strong>Node.js</strong> fait tourner le code de l'application sur ton ordinateur. Il vient avec <strong>npm</strong>, l'outil qui télécharge les briques toutes faites du projet.</div>
+<figure class="fig"><img src="../img/site-node.png" alt="À quoi ressemble la page de téléchargement de Node.js — clique le gros bouton « LTS »." loading="lazy"><figcaption>À quoi ressemble la page de téléchargement de Node.js — clique le gros bouton « LTS ».</figcaption></figure>
 <ol class="steps"><li>Ouvre ton navigateur (Edge, Chrome…) et va sur <a class="ext" href="https://nodejs.org/en/download" target="_blank" rel="noopener">https://nodejs.org/en/download</a>.</li><li>Repère le bouton avec la mention <strong>« LTS »</strong> (= la version stable, recommandée). Clique dessus pour télécharger le fichier <code>.msi</code> Windows.</li><li>En bas du navigateur, clique sur le fichier téléchargé (ex. <code>node-vXX-x64.msi</code>) pour lancer l'installation.</li><li>Une fenêtre s'ouvre : clique <strong>Next</strong>, coche <strong>« I accept… »</strong>, puis <strong>Next</strong> à chaque écran (laisse tout par défaut), puis <strong>Install</strong>. Windows demande l'autorisation : clique <strong>Oui</strong>.</li><li>Quand c'est fini, clique <strong>Finish</strong>.</li></ol>
 <div class="verif">✅ <strong>Vérifie :</strong> Ouvre le menu Démarrer, tape <code>cmd</code>, ouvre « Invite de commandes ». Tape la commande ci-dessous et appuie sur Entrée.</div>
 <div class="codewrap"><button class="copy" type="button">Copier</button><pre><code>node --version

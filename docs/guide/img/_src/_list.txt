@@ -1,0 +1,12 @@
+site-node
+site-github
+site-supabase-new
+site-supabase-sql
+site-supabase-user
+site-vercel
+app-login
+app-dashboard
+app-people
+app-person-form
+app-enroll
+app-crm
