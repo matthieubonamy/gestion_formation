@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>PWA Gestion de formations — Schéma de base de données</title>
+<style>
+  :root { --blue:#1d4ed8; --slate:#0f172a; --grey:#475569; --line:#e2e8f0; --soft:#f8fafc; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--slate); line-height:1.55; font-size:12.5px; margin:0; }
+  .page { max-width:820px; margin:0 auto; padding:34px 40px; }
+  header.cover { border-bottom:4px solid var(--blue); padding-bottom:18px; margin-bottom:26px; }
+  header.cover .kicker { color:var(--blue); font-weight:700; letter-spacing:.08em; text-transform:uppercase; font-size:11px; }
+  header.cover h1 { font-size:26px; margin:6px 0 4px; }
+  header.cover .sub { color:var(--grey); font-size:13px; }
+  header.cover .meta { margin-top:12px; color:var(--grey); font-size:11px; }
+  h2 { font-size:17px; margin:26px 0 8px; padding-bottom:5px; border-bottom:2px solid var(--line); }
+  h3 { font-size:13.5px; margin:16px 0 4px; color:var(--blue); }
+  p { margin:6px 0; }
+  ul { margin:6px 0; padding-left:20px; } li { margin:3px 0; }
+  table { border-collapse:collapse; width:100%; margin:10px 0; font-size:11px; }
+  th,td { border:1px solid var(--line); padding:5px 8px; text-align:left; vertical-align:top; }
+  th { background:var(--blue); color:#fff; font-weight:600; }
+  tr:nth-child(even) td { background:var(--soft); }
+  .callout { background:#eff6ff; border-left:4px solid var(--blue); padding:10px 14px; border-radius:4px; margin:12px 0; font-size:12px; }
+  .mvp { display:inline-block; background:#059669; color:#fff; font-size:9.5px; padding:1px 6px; border-radius:9px; }
+  .later { display:inline-block; background:#94a3b8; color:#fff; font-size:9.5px; padding:1px 6px; border-radius:9px; }
+  pre { background:#0f172a; color:#e2e8f0; padding:12px 14px; border-radius:6px; font-size:10.5px; line-height:1.45; overflow:auto; white-space:pre; }
+  .diagram { background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:10px 14px; font-family:"SF Mono",Consolas,monospace; font-size:10.5px; white-space:pre; }
+  .validation { background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:12px 16px; margin-top:14px; }
+  footer { margin-top:30px; padding-top:12px; border-top:1px solid var(--line); color:var(--grey); font-size:10.5px; text-align:center; }
+  @page { margin:14mm; }
+  h2 { page-break-after:avoid; } table,.callout,pre,.diagram { page-break-inside:avoid; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="cover">
+    <div class="kicker">Projet — Application de gestion de formations (PWA)</div>
+    <h1>Schéma de base de données</h1>
+    <div class="sub">Document de cadrage — Étape 2 du MVP</div>
+    <div class="meta">Préparé le 28 juin 2026 &nbsp;•&nbsp; Pour validation avec l'associé &nbsp;•&nbsp; Architecture retenue : Next.js + Supabase + Vercel</div>
+  </header>
+
+  <h2>1. Objectif de cette étape</h2>
+  <p>Avant d'écrire la moindre ligne d'application, on définit <strong>comment les données sont rangées</strong>. C'est comme dessiner le plan d'une maison avant de la construire : un bon plan rend tout le reste plus simple et solide.</p>
+  <div class="callout"><strong>Rappel image.</strong> Une base de données = un grand classeur. Une <strong>table</strong> = une chemise (les personnes, les formations…). Une <strong>ligne</strong> = une fiche. Une <strong>colonne</strong> = une information (le nom, l'email…). Les <strong>relations</strong> = des fils qui relient les fiches entre elles.</p>
+  <p>On crée les <strong>12 tables</strong> prévues. <span class="mvp">MVP</span> = utilisée tout de suite. <span class="later">PLUS TARD</span> = créée maintenant, exploitée après le MVP.</p>
+
+  <h2>2. Comment les tables sont reliées</h2>
+  <div class="diagram">organizations ──&lt; people ──&lt; enrollments &gt;── courses ──&lt; sessions
+                    │  │           │                        │
+                    │  │           ├──&lt; payments            └── trainers
+                    │  │           └──&lt; satisfaction_surveys
+                    │  └──&lt; notes
+                    └──&lt; crm_followups
+people / enrollments ──&lt; documents
+auth.users (Supabase) ── users (profil admin)</div>
+  <p style="font-size:11px;color:var(--grey)">Le symbole <code>──&lt;</code> se lit « peut en avoir plusieurs ». Une personne peut avoir plusieurs inscriptions ; une inscription relie une personne à une formation.</p>
+
+  <h2>3. Les 12 tables en résumé</h2>
+  <table>
+    <tr><th>#</th><th>Table</th><th>Rôle</th><th>Champs clés</th><th>Reliée à</th></tr>
+    <tr><td>1</td><td>users <span class="mvp">MVP</span></td><td>Comptes admin</td><td>email, role</td><td>auth.users</td></tr>
+    <tr><td>2</td><td>organizations <span class="later">+tard</span></td><td>Entreprises / employeurs</td><td>name, siret</td><td>—</td></tr>
+    <tr><td>3</td><td>people <span class="mvp">MVP</span></td><td>Prospects &amp; clients</td><td>prénom, nom, email, statut, source, consent</td><td>organizations</td></tr>
+    <tr><td>4</td><td>trainers <span class="later">+tard</span></td><td>Formateurs</td><td>prénom, nom</td><td>—</td></tr>
+    <tr><td>5</td><td>courses <span class="mvp">MVP</span></td><td>Catalogue de formations</td><td>nom, prix, type, statut, dates</td><td>—</td></tr>
+    <tr><td>6</td><td>sessions <span class="mvp">MVP</span></td><td>Dates concrètes d'une formation</td><td>dates, lieu, capacité</td><td>courses, trainers</td></tr>
+    <tr><td>7</td><td>enrollments <span class="mvp">MVP</span></td><td><strong>Inscriptions (lien central)</strong></td><td>statuts inscription / présence / paiement</td><td>people, courses, sessions</td></tr>
+    <tr><td>8</td><td>payments <span class="mvp">MVP</span></td><td>Suivi des paiements (manuel)</td><td>montant, statut, échéance</td><td>enrollments</td></tr>
+    <tr><td>9</td><td>crm_followups <span class="mvp">MVP</span></td><td><strong>Relances</strong></td><td>date relance, priorité, canal, statut</td><td>people, enrollments</td></tr>
+    <tr><td>10</td><td>notes <span class="mvp">MVP</span></td><td>Notes internes horodatées</td><td>contenu, auteur</td><td>people, users</td></tr>
+    <tr><td>11</td><td>documents <span class="later">+tard</span></td><td>Fichiers (PDF, conventions)</td><td>chemin du fichier</td><td>people, enrollments</td></tr>
+    <tr><td>12</td><td>satisfaction_surveys <span class="later">+tard</span></td><td>Avis après formation</td><td>note 1–5, commentaire</td><td>enrollments</td></tr>
+  </table>
+
+  <h2>4. Choix importants (et pourquoi)</h2>
+  <ul>
+    <li><strong>Statuts encadrés par des règles.</strong> Le statut d'une personne ne peut être que <em>prospect, inscrit, client ou archive</em>. Cela évite les fautes de frappe et garde des données propres.</li>
+    <li><strong>« enrollments » est la table pivot.</strong> Elle porte les 3 statuts demandés : inscription, présence, paiement. Règle ajoutée : pas deux fois la même personne sur la même formation.</li>
+    <li><strong>Suppression en cascade.</strong> Supprimer une personne efface aussi ses inscriptions, relances et notes — essentiel pour le RGPD (« supprimer une personne » efface vraiment toutes ses traces).</li>
+    <li><strong>Deux niveaux de notes.</strong> Une note rapide unique sur la fiche personne + un historique de commentaires datés dans la table notes.</li>
+    <li><strong>Consentement RGPD dès maintenant</strong> sur la table people (champ consent + date).</li>
+    <li><strong>Pas de paiement en ligne.</strong> La table payments est un simple carnet de suivi rempli à la main (virement, chèque, CPF…).</li>
+  </ul>
+
+  <h2>5. Exemples de données</h2>
+  <h3>people</h3>
+  <table><tr><th>first_name</th><th>last_name</th><th>email</th><th>status</th><th>source</th><th>consent</th></tr>
+  <tr><td>Sophie</td><td>Martin</td><td>sophie@mail.fr</td><td>prospect</td><td>site web</td><td>true</td></tr></table>
+  <h3>courses</h3>
+  <table><tr><th>name</th><th>type</th><th>price</th><th>status</th><th>start_date</th></tr>
+  <tr><td>Initiation Excel</td><td>présentiel</td><td>450.00</td><td>ouverte</td><td>2026-09-15</td></tr></table>
+  <h3>enrollments — Sophie inscrite à Excel</h3>
+  <table><tr><th>person</th><th>course</th><th>enrollment_status</th><th>attendance_status</th><th>payment_status</th></tr>
+  <tr><td>Sophie Martin</td><td>Initiation Excel</td><td>inscrit</td><td>non_defini</td><td>impaye</td></tr></table>
+  <h3>crm_followups — relance à prévoir</h3>
+  <table><tr><th>person</th><th>next_followup_date</th><th>priority</th><th>channel</th><th>commercial_status</th></tr>
+  <tr><td>Sophie Martin</td><td>2026-07-03</td><td>haute</td><td>telephone</td><td>a_relancer</td></tr></table>
+
+  <h2>6. Validation &amp; prochaine étape</h2>
+  <div class="validation">
+    <p><strong>Ce qui a été fait :</strong> schéma complet des 12 tables (fichier db/schema.sql) avec champs, types, relations, contraintes et exemples. Rien n'est encore appliqué en base.</p>
+    <p><strong>À valider ensemble :</strong> est-ce que toute l'activité rentre dans ces tables ? Manque-t-il un champ (numéro de dossier, financeur, adresse de facturation) ? La distinction note rapide + historique convient-elle ?</p>
+    <p><strong>Étape suivante (Étape 3) :</strong> créer le projet proprement (structure de dossiers, README, fichier .env.example, commandes pour lancer et tester) et appliquer ce schéma dans Supabase.</p>
+  </div>
+
+  <footer>Document de cadrage — Projet PWA Gestion de formations • Étape 2/15 • Page générée automatiquement</footer>
+
+</div>
+</body>
+</html>
