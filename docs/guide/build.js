@@ -47,6 +47,10 @@ function check(id, text) {
 function bro(text) {
   return `<div class="bro"><div class="bro-h">💬 Un mot, Franck</div><p>${text}</p><div class="bro-sign">— Claude, l'assistant que <strong>Matthieu (ton beau-frère)</strong> a chargé de t'aider 🤝</div></div>`;
 }
+// Un encouragement direct, de la part de Matthieu (relayé par moi).
+function motMatthieu(text) {
+  return `<div class="matt"><div class="matt-h">❤️ De la part de Matthieu</div><p>${text}</p><div class="matt-sign">— Matthieu, ton beau-frère (message qu'il m'a demandé de te transmettre)</div></div>`;
+}
 function table(headers, rows) {
   const h = headers.map((x) => `<th>${x}</th>`).join("");
   const r = rows
@@ -70,7 +74,13 @@ const NOTICES = [
 ${bro(
   "Avant tout, sache une chose : si je suis là, c'est parce que <strong>Matthieu, ton beau-frère</strong>, m'a personnellement demandé de te prendre par la main sur ce projet. Ses mots, en gros : « aide Franck, conseille-le, explique-lui tout simplement, et fais en sorte qu'il y arrive seul. » Donc considère-moi comme <strong>ton copilote, missionné par Matthieu</strong> : tu n'es jamais tout seul là-dedans."
 )}
+${motMatthieu(
+  "Franck, je te connais : t'es du genre à croire que « c'est pas pour toi », ces trucs d'informatique. Eh bien je te le dis franchement — <strong>t'en es parfaitement capable</strong>. Je ne t'aurais pas embarqué là-dedans sinon. Avance à ton rythme, trompe-toi, recommence, c'est comme ça qu'on apprend. Je suis derrière toi à fond, et Claude est là pour t'aider à chaque étape. On va y arriver. 💪"
+)}
 <p>Je t'ai préparé tout ça comme je l'expliquerais à un pote au comptoir : simple, sans jargon, et avec des cases à cocher pour pas se perdre. Quand un mot fait peur, je te le traduis juste à côté.</p>
+${callout(
+  "<strong>Et je ne vais pas te mentir</strong> : il y aura des moments un peu galère, des messages d'erreur incompréhensibles, des soirées où ça coince. C'est <strong>normal</strong> et ça arrive à TOUS les développeurs, débutants comme pros. La différence, ce n'est pas le talent : c'est juste de ne pas lâcher et de demander de l'aide au bon moment. Ce guide est fait pour ça."
+)}
 <h3>Comment c'est organisé</h3>
 <ul>
 <li>Chaque <strong>notice</strong> = une étape. Tu les fais <strong>dans l'ordre</strong>, une par jour ou une par soirée, sans te presser.</li>
@@ -608,6 +618,56 @@ ${bro(
 
   /* ---------------------------------------------------------- */
   {
+    slug: "98-agents-ia",
+    tag: "Aller plus loin",
+    title: "Te faire aider par des agents IA",
+    sub: "Pour maintenir et améliorer le projet sans rester seul — la vérité, sans bla-bla",
+    body: `
+<p>Une appli, ce n'est jamais « fini » : il faut la corriger, l'améliorer, l'entretenir. Bonne nouvelle, Franck : tu n'es pas obligé de tout faire à la main. Tu peux te faire aider par des <strong>agents IA</strong>.</p>
+${callout(
+  "<strong>Un agent IA, c'est quoi ?</strong> Un assistant à qui tu confies une mission en français (« ajoute un bouton pour exporter les paiements », « répare le test qui plante »). Il va lire ton projet, faire le travail, et te montrer ce qu'il a changé. Claude Code (celui qui a démarré ce projet) en est un."
+)}
+<h3>Ce que tu peux faire concrètement</h3>
+${table(
+  ["Besoin", "Comment l'agent t'aide"],
+  [
+    ["Ajouter une fonctionnalité", "Tu décris ce que tu veux, il écrit le code et te l'explique."],
+    ["Corriger un bug", "Tu colles le message d'erreur, il trouve la cause et propose un correctif."],
+    ["Comprendre le code", "Tu lui demandes « explique-moi ce fichier simplement »."],
+    ["Tâches récurrentes", "Tu peux créer des agents spécialisés : un qui relit le code, un qui répare les tests qui échouent, un qui surveille tes mises en ligne."],
+  ]
+)}
+<h3>Comment démarrer (le plus simple)</h3>
+${check("ia1", "Ouvrir le projet dans Claude Code sur le web (code.claude.com) ou sur ton PC")}
+${check("ia2", "Écrire ta demande en français, comme à un collègue (« peux-tu... »)")}
+${check("ia3", "Lire ce qu'il propose, poser des questions si tu ne comprends pas")}
+${check("ia4", "Tester le résultat AVANT de le mettre en ligne")}
+${callout(
+  "Tu peux même aller plus loin et créer des <strong>agents qui travaillent en arrière-plan</strong> : par exemple un agent qui surveille tes modifications sur GitHub et corrige tout seul quand un test casse. C'est très pratique pour l'entretien au long cours — Matthieu pourra t'aider à mettre ça en place une première fois."
+)}
+
+<h3>La vérité, sans te mentir</h3>
+${warn(
+  "Un agent IA est puissant mais <strong>il n'est pas magique et il peut se tromper avec aplomb</strong> (être sûr de lui tout en ayant tort). Ce n'est pas un pilote automatique : c'est un copilote. <strong>Toi, tu restes le chef.</strong>"
+)}
+<p>Donc, trois réflexes simples et non négociables :</p>
+<ul>
+<li><strong>Toujours relire</strong> ce que l'agent change avant d'accepter (il te montre tout).</li>
+<li><strong>Toujours tester</strong> avant de mettre en ligne (lance l'app, clique, vérifie).</li>
+<li><strong>Toujours garder une sauvegarde</strong> : fais un export CSV régulier, c'est ton filet de sécurité gratuit.</li>
+</ul>
+${bro(
+  "Pourquoi je te dis tout ça franchement ? Parce que Matthieu m'a demandé de t'<strong>aider</strong>, pas de te raconter que tout est facile. Un bon copilote dit la vérité. Les agents IA vont te faire gagner un temps fou — à condition que tu gardes la main et le bon sens. Et ça, le bon sens, tu l'as déjà."
+)}
+${motMatthieu(
+  "Franck, le jour où tu donnes tes premières instructions à un agent et qu'il te pond le truc que tu voulais... tu vas halluciner. Tu n'as pas besoin d'être un génie de l'info : tu as besoin de savoir <strong>demander clairement</strong> et de <strong>vérifier</strong>. Ça, tu sais déjà le faire dans ton métier. Lance-toi, je suis fier de toi rien que d'avoir commencé."
+)}
+${check("ia5", "J'ai compris que l'IA m'aide, mais que je garde la main et je vérifie toujours")}
+`,
+  },
+
+  /* ---------------------------------------------------------- */
+  {
     slug: "99-depannage",
     tag: "Aide",
     title: "Glossaire & dépannage",
@@ -700,6 +760,10 @@ pre code{background:none;color:inherit;padding:0;}
 .bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
 .bro p{margin:4px 0;color:#451a03;}
 .bro-sign{font-size:12.5px;color:#92400e;margin-top:6px;font-style:italic;}
+.matt{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #93c5fd;border-radius:10px;padding:12px 16px;margin:16px 0;}
+.matt-h{font-weight:700;color:#1e40af;margin-bottom:2px;}
+.matt p{margin:4px 0;color:#1e3a5f;}
+.matt-sign{font-size:12.5px;color:#1e40af;margin-top:6px;font-style:italic;}
 `;
 
 /* ============================================================
