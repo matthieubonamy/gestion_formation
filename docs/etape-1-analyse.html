@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>PWA Gestion de formations — Architecture & Analyse du besoin</title>
+<style>
+  :root { --blue:#1d4ed8; --slate:#0f172a; --grey:#475569; --line:#e2e8f0; --soft:#f8fafc; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--slate); line-height: 1.55; font-size: 12.5px; margin: 0; padding: 0;
+  }
+  .page { max-width: 820px; margin: 0 auto; padding: 34px 40px; }
+  header.cover {
+    border-bottom: 4px solid var(--blue); padding-bottom: 18px; margin-bottom: 26px;
+  }
+  header.cover .kicker { color: var(--blue); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 11px; }
+  header.cover h1 { font-size: 26px; margin: 6px 0 4px; }
+  header.cover .sub { color: var(--grey); font-size: 13px; }
+  header.cover .meta { margin-top: 12px; color: var(--grey); font-size: 11px; }
+  h2 { font-size: 17px; margin: 26px 0 8px; padding-bottom: 5px; border-bottom: 2px solid var(--line); color: var(--slate); }
+  h3 { font-size: 13.5px; margin: 16px 0 4px; color: var(--blue); }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 11.5px; }
+  th, td { border: 1px solid var(--line); padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: var(--blue); color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: var(--soft); }
+  .callout { background: #eff6ff; border-left: 4px solid var(--blue); padding: 10px 14px; border-radius: 4px; margin: 12px 0; font-size: 12px; }
+  .reco { background: #ecfdf5; border-left: 4px solid #059669; padding: 12px 14px; border-radius: 4px; margin: 14px 0; }
+  .reco strong { color: #047857; }
+  .pill { display:inline-block; background:#059669; color:#fff; font-size:10px; padding:1px 7px; border-radius:10px; vertical-align:middle; }
+  .tag { display:inline-block; background:#e2e8f0; color:#334155; font-size:10px; padding:1px 7px; border-radius:10px; margin-right:4px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .card { border:1px solid var(--line); border-radius:6px; padding:10px 12px; }
+  .card h4 { margin:0 0 4px; font-size:12.5px; }
+  .ok { color:#059669; } .no { color:#dc2626; } .warn { color:#d97706; }
+  footer { margin-top:30px; padding-top:12px; border-top:1px solid var(--line); color:var(--grey); font-size:10.5px; text-align:center; }
+  .validation { background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:12px 16px; margin-top:14px; }
+  @page { margin: 14mm; }
+  h2 { page-break-after: avoid; }
+  table, .callout, .reco, .card { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="cover">
+    <div class="kicker">Projet — Application de gestion de formations (PWA)</div>
+    <h1>Architecture &amp; Analyse du besoin</h1>
+    <div class="sub">Document de cadrage — Étape 1 du MVP</div>
+    <div class="meta">Préparé le 28 juin 2026 &nbsp;•&nbsp; Pour validation avec l'associé &nbsp;•&nbsp; Statut : proposition</div>
+  </header>
+
+  <h2>1. Reformulation du besoin</h2>
+  <p>Nous sommes formateurs. Aujourd'hui, les contacts, les formations et les relances sont gérés de tête, dans un carnet ou dans un tableur. L'objectif est de disposer d'un <strong>outil unique</strong> qui regroupe tout :</p>
+  <ul>
+    <li>les <strong>personnes</strong> (prospects et clients) ;</li>
+    <li>les <strong>formations</strong> proposées ;</li>
+    <li><strong>qui est inscrit à quoi</strong> ;</li>
+    <li><strong>qui a payé / n'a pas payé</strong> ;</li>
+    <li><strong>qui relancer et quand</strong> ;</li>
+    <li>un <strong>tableau de bord</strong> pour voir l'essentiel d'un coup d'œil ;</li>
+    <li>la possibilité d'<strong>exporter les données</strong> (ne jamais être prisonnier de l'outil).</li>
+  </ul>
+  <p>C'est un <strong>mini-CRM spécialisé formation</strong>, utilisable <strong>sur téléphone comme sur ordinateur</strong> — c'est le principe d'une PWA.</p>
+  <div class="callout"><strong>PWA = Progressive Web App.</strong> Un site web qui se comporte comme une application : installable sur le téléphone (icône sur l'écran d'accueil), s'ouvre en plein écran, fonctionne même avec une connexion faible. Pas besoin de l'App Store ni de Google Play.</div>
+
+  <h2>2. Vocabulaire de base (en mots simples)</h2>
+  <table>
+    <tr><th style="width:22%">Terme</th><th>Explication</th></tr>
+    <tr><td>Frontend</td><td>Ce que l'on voit et touche : écrans, boutons, formulaires.</td></tr>
+    <tr><td>Backend</td><td>Le cerveau caché : vérifie les mots de passe, enregistre les données, applique les règles.</td></tr>
+    <tr><td>Base de données</td><td>Le grand classeur où sont rangées toutes les données.</td></tr>
+    <tr><td>Authentification</td><td>Le portier qui vérifie l'identité avant de laisser entrer.</td></tr>
+    <tr><td>Hébergement</td><td>Le terrain où l'application est posée pour être accessible sur Internet.</td></tr>
+    <tr><td>Stockage</td><td>L'armoire à fichiers (documents PDF, plus tard).</td></tr>
+    <tr><td>Monitoring</td><td>La caméra de surveillance : prévient quand quelque chose casse.</td></tr>
+    <tr><td>Tests</td><td>Des contrôles automatiques qui vérifient que tout marche après une modification.</td></tr>
+  </table>
+
+  <h2>3. Architecture : 3 options comparées</h2>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Option A — Tout fait maison</h4>
+      <p style="font-size:11px;color:var(--grey)">Node.js + Express + PostgreSQL, serveur géré soi-même.</p>
+      <p><span class="ok">✔</span> Contrôle total, on apprend tout.<br>
+      <span class="no">✗</span> Beaucoup à installer, configurer et sécuriser. Trop lourd pour démarrer vite.</p>
+    </div>
+    <div class="card" style="border-color:#059669;">
+      <h4>Option B — Next.js + Supabase <span class="pill">Recommandé</span></h4>
+      <p style="font-size:11px;color:var(--grey)">Frontend + backend dans un seul projet, base &amp; auth fournies.</p>
+      <p><span class="ok">✔</span> Résultat rapide, peu de plomberie.<br>
+      <span class="ok">✔</span> Gratuit au début, très bien documenté.<br>
+      <span class="warn">●</span> Dépendance à un fournisseur, atténuée car PostgreSQL est standard.</p>
+    </div>
+    <div class="card">
+      <h4>Option C — No-code (Airtable, Bubble…)</h4>
+      <p style="font-size:11px;color:var(--grey)">Zéro code.</p>
+      <p><span class="ok">✔</span> Très rapide au tout début.<br>
+      <span class="no">✗</span> Limites vite atteintes (RGPD, exports, règles, sécurité) et on n'apprend pas à développer.</p>
+    </div>
+    <div class="card" style="background:var(--soft);border:none;"></div>
+  </div>
+
+  <div class="reco">
+    <strong>Recommandation : Option B — Next.js + Supabase + Vercel.</strong>
+    Le meilleur équilibre entre rapidité, coût (gratuit pour démarrer), sécurité et apprentissage. On garde notre propre code et nos données restent dans une base PostgreSQL standard, donc portable.
+  </div>
+
+  <h3>Les briques retenues</h3>
+  <table>
+    <tr><th style="width:24%">Brique</th><th style="width:30%">Choix</th><th>Pourquoi (en simple)</th></tr>
+    <tr><td>Frontend + Backend</td><td>Next.js (React) + TypeScript</td><td>Un seul projet, parfait pour une PWA, très répandu et bien documenté.</td></tr>
+    <tr><td>Base de données</td><td>Supabase (PostgreSQL)</td><td>Fiable, gratuit au début, sauvegardes incluses.</td></tr>
+    <tr><td>Authentification</td><td>Supabase Auth</td><td>Le portier est déjà tout fait et sécurisé.</td></tr>
+    <tr><td>Hébergement</td><td>Vercel</td><td>Créateur de Next.js ; déploiement en 1 clic, gratuit au début.</td></tr>
+    <tr><td>Stockage fichiers</td><td>Supabase Storage</td><td>Pour les documents (après le MVP).</td></tr>
+    <tr><td>Emails (plus tard)</td><td>Resend / emails Supabase</td><td>Simple ; à voir après le MVP.</td></tr>
+    <tr><td>Monitoring</td><td>Logs Vercel + Sentry (plus tard)</td><td>Voir les erreurs sans se compliquer.</td></tr>
+    <tr><td>Tests</td><td>Vitest + Playwright</td><td>Petits tests + simulation d'un vrai clic utilisateur.</td></tr>
+  </table>
+
+  <h2>4. Analyse du besoin</h2>
+
+  <h3>Qui utilise l'application ?</h3>
+  <p>Pour le MVP, <strong>un seul type d'utilisateur : l'administrateur</strong> (le formateur). Pas d'espace apprenant ni formateur séparé — volontairement écarté du MVP.</p>
+
+  <h3>Ce que l'administrateur fait</h3>
+  <ol>
+    <li>Se connecter de façon sécurisée.</li>
+    <li>Gérer les personnes : ajouter, modifier, supprimer, rechercher, filtrer.</li>
+    <li>Gérer les formations : ajouter, modifier, supprimer.</li>
+    <li>Inscrire une personne à une formation.</li>
+    <li>Suivre chaque inscription : présence, statut de suivi, statut de paiement.</li>
+    <li>Relancer : date de prochaine relance, priorité, canal, historique.</li>
+    <li>Consulter le tableau de bord et le tableau des personnes à relancer.</li>
+    <li>Exporter les données en CSV.</li>
+  </ol>
+
+  <h3>Les données à gérer</h3>
+  <ul>
+    <li><strong>Personnes</strong> : identité, contact, statut, source, notes.</li>
+    <li><strong>Formations</strong> : nom, description, type, prix, dates, statut.</li>
+    <li><strong>Sessions</strong> : dates concrètes d'une formation.</li>
+    <li><strong>Inscriptions</strong> : lien personne ↔ formation + statuts (inscription, présence, paiement).</li>
+    <li><strong>Paiements</strong> : ce qui est dû / réglé.</li>
+    <li><strong>Relances (CRM)</strong> : date, priorité, canal, statut commercial, historique.</li>
+    <li><strong>Notes</strong> : commentaires libres rattachés à une personne.</li>
+    <li>(Plus tard) organisations, formateurs, documents, enquêtes de satisfaction.</li>
+  </ul>
+
+  <h3>Les écrans nécessaires (minimum)</h3>
+  <p>
+    <span class="tag">Connexion</span><span class="tag">Tableau de bord</span><span class="tag">Liste des personnes</span>
+    <span class="tag">Fiche personne</span><span class="tag">Liste des formations</span><span class="tag">Fiche formation</span>
+    <span class="tag">Inscription</span><span class="tag">Tableau des relances</span><span class="tag">Export CSV</span>
+  </p>
+
+  <h3>Les risques (et leur maîtrise)</h3>
+  <table>
+    <tr><th style="width:32%">Risque</th><th>Maîtrise prévue</th></tr>
+    <tr><td>Accès non autorisé</td><td>Authentification + protection de toutes les pages.</td></tr>
+    <tr><td>RGPD (données personnelles)</td><td>Suppression, export et consentement (étape dédiée).</td></tr>
+    <tr><td>Perte de données</td><td>Sauvegardes Supabase + export CSV comme filet de sécurité.</td></tr>
+    <tr><td>Sur-complexité</td><td>Code simple, aucune dépendance inutile.</td></tr>
+    <tr><td>Dépendance fournisseur</td><td>Atténuée : PostgreSQL est un standard portable.</td></tr>
+  </table>
+
+  <h3>Ce qu'on ne fait PAS au départ</h3>
+  <p>Paiement en ligne, espace apprenant, espace formateur, signature électronique, automatisations complexes, IA, messagerie, application mobile native, multi-tenant complexe. <strong>Le MVP reste concentré et utile.</strong></p>
+
+  <h2>5. Prochaine étape</h2>
+  <div class="validation">
+    <p><strong>Ce qui a été fait :</strong> reformulation du besoin, comparaison de 3 architectures avec recommandation (Next.js + Supabase + Vercel), analyse complète (utilisateurs, actions, données, écrans, risques, hors-périmètre). Aucun code écrit à ce stade.</p>
+    <p><strong>À valider ensemble :</strong> l'architecture proposée et l'exactitude de l'analyse du besoin (rien d'important oublié pour notre activité ?).</p>
+    <p><strong>Étape suivante (Étape 2) :</strong> proposition du schéma de base de données (tables : users, people, organizations, trainers, courses, sessions, enrollments, payments, crm_followups, notes, documents, satisfaction_surveys) avec champs, types, relations et exemples.</p>
+  </div>
+
+  <footer>
+    Document de cadrage — Projet PWA Gestion de formations • Étape 1/15 • Page générée automatiquement
+  </footer>
+
+</div>
+</body>
+</html>
