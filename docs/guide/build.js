@@ -334,7 +334,7 @@ ${decision(
 )}
 
 ${bro(
-  "Ces décisions, tu n'as pas à les porter seul. Mes recommandations sont faites pour un débutant qui veut du simple et du pas cher — mais le dernier mot revient à <strong>toi et Matthieu</strong>. Si un choix te fait hésiter, mets-le de côté et demande à ton beau-frère : c'est justement pour ça qu'il m'a demandé de tout te présenter clairement, options par options."
+  "Ces décisions, tu n'as pas à les porter seul. Mes recommandations sont faites pour un débutant qui veut du simple et du pas cher. Pour les choix purement <strong>techniques</strong>, demande à <strong>Matthieu</strong> si tu hésites — c'est son domaine et il m'a justement demandé de te les présenter clairement. En revanche, dès qu'un choix coûte de l'argent (hébergement payant, nom de domaine…), ce n'est ni à toi ni à Matthieu de trancher : ça se valide avec <strong>ton employeur</strong>. Tu peux très bien tout préparer en version gratuite et garder ces décisions « budget » pour plus tard."
 )}
 ${check("decisions-noted", "J'ai noté mes décisions (je peux y revenir plus tard)")}
 `,
@@ -413,9 +413,9 @@ ${warn(
 <li>Garde toujours un <strong>export CSV</strong> récent : c'est ta sauvegarde gratuite et ta liberté de partir ailleurs.</li>
 </ul>
 ${bro(
-  "Le budget, c'est typiquement le genre de sujet à caler avec <strong>Matthieu</strong> avant de sortir la carte bleue. Tant que vous testez, ça reste à 0 €, donc rien ne presse. Quand viendra le moment de passer aux versions payantes, voyez ça ensemble — moi je suis là pour t'expliquer chaque ligne de la facture si besoin."
+  "Sur l'argent, soyons clairs : ce n'est pas à toi de sortir la carte bleue, et Matthieu n'est pas concerné non plus. <strong>Le financement, c'est à voir avec ton employeur.</strong> Et c'est là que tu as une super carte à jouer : tant que tu testes, ça coûte 0 €, donc tu peux d'abord <strong>construire une vraie démo qui marche</strong>… puis la montrer. Quand ton employeur verra l'outil tourner — les relances qui ne s'oublient plus, le suivi des paiements, l'export en un clic — la question ne sera plus « est-ce qu'on paie 40 € par mois ? » mais « pourquoi on ne l'avait pas avant ? ». La puissance de ce que tu auras créé vaudra largement ce petit budget."
 )}
-${check("costs-understood", "J'ai compris quand et pourquoi on commencera à payer")}
+${check("costs-understood", "J'ai compris : je teste gratuitement, je montre, et le financement se voit avec l'employeur")}
 `,
   },
 
@@ -704,7 +704,7 @@ ${callout("Règle de dépannage du débutant : <strong>lis le message d'erreur e
 <li>La doc Supabase (supabase.com/docs) et Vercel (vercel.com/docs).</li>
 <li>Claude Code sur le web : ouvre le dépôt et décris ton blocage.</li>
 <li>Reprends la notice de l'étape concernée, étape par étape.</li>
-<li><strong>Matthieu</strong>, ton beau-frère : c'est lui qui a lancé tout ça, il connaît le projet.</li>
+<li><strong>Matthieu</strong>, ton beau-frère : c'est lui qui m'a demandé de t'aider et il s'y connaît en dev — parfait pour un coup de main technique.</li>
 </ul>
 ${bro(
   "Dernier rappel, et pas le moindre : <strong>demander de l'aide n'est pas tricher</strong>, c'est même la bonne méthode. Matthieu m'a demandé de te conseiller, donc utilise-moi à fond, et n'hésite jamais à le solliciter lui aussi. Un blocage partagé, c'est un blocage à moitié résolu. On est une équipe, Franck."
