@@ -43,6 +43,10 @@ function warn(text) {
 function check(id, text) {
   return `<label class="check"><input type="checkbox" data-key="${id}"><span>${text}</span></label>`;
 }
+// Le "mot de Matthieu via Claude" : rappelle à Franck pourquoi je suis là.
+function bro(text) {
+  return `<div class="bro"><div class="bro-h">💬 Un mot, Franck</div><p>${text}</p><div class="bro-sign">— Claude, l'assistant que <strong>Matthieu (ton beau-frère)</strong> a chargé de t'aider 🤝</div></div>`;
+}
 function table(headers, rows) {
   const h = headers.map((x) => `<th>${x}</th>`).join("");
   const r = rows
@@ -63,6 +67,9 @@ const NOTICES = [
     sub: "À lire en premier — 5 minutes, promis",
     body: `
 <p>Salut Franck ! 🙌 C'est ton kit perso pour <strong>reprendre et finir tranquillement</strong> le projet d'appli de gestion de formations — même si tu n'as <strong>jamais codé de ta vie</strong>. On y va à ton rythme, pas de stress.</p>
+${bro(
+  "Avant tout, sache une chose : si je suis là, c'est parce que <strong>Matthieu, ton beau-frère</strong>, m'a personnellement demandé de te prendre par la main sur ce projet. Ses mots, en gros : « aide Franck, conseille-le, explique-lui tout simplement, et fais en sorte qu'il y arrive seul. » Donc considère-moi comme <strong>ton copilote, missionné par Matthieu</strong> : tu n'es jamais tout seul là-dedans."
+)}
 <p>Je t'ai préparé tout ça comme je l'expliquerais à un pote au comptoir : simple, sans jargon, et avec des cases à cocher pour pas se perdre. Quand un mot fait peur, je te le traduis juste à côté.</p>
 <h3>Comment c'est organisé</h3>
 <ul>
@@ -150,7 +157,9 @@ ${code(
 )}
 <p>La dernière commande te place sur <strong>la branche de travail</strong> (la version en cours du projet).</p>
 ${check("b3", "J'ai cloné le projet et je suis sur la bonne branche")}
-
+${bro(
+  "Pour l'accès au dépôt, pas besoin de chercher midi à quatorze heures : c'est <strong>Matthieu</strong> qui t'ajoute en deux clics (il a les droits). Un petit message à ton beau-frère et c'est réglé. Il sait que tu vas lui demander, il m'a dit de te dire de ne pas hésiter."
+)}
 <h3>Recréer de zéro (option « tout refaire soi-même »)</h3>
 <p>Si tu préfères <strong>tout reconstruire pour apprendre</strong>, tu n'as pas besoin de cloner : tu suis simplement les notices des Étapes 1 à 15 dans l'ordre, en repartant d'un dossier vide. Les deux fichiers déjà faits (<code>docs/</code> et <code>db/schema.sql</code>) te servent alors de <strong>modèle</strong> à recopier.</p>
 `,
@@ -314,6 +323,9 @@ ${decision(
   "Commence à <strong>un</strong>, ajoute ton associé quand l'app marche. C'est gratuit et rapide à faire."
 )}
 
+${bro(
+  "Ces décisions, tu n'as pas à les porter seul. Mes recommandations sont faites pour un débutant qui veut du simple et du pas cher — mais le dernier mot revient à <strong>toi et Matthieu</strong>. Si un choix te fait hésiter, mets-le de côté et demande à ton beau-frère : c'est justement pour ça qu'il m'a demandé de tout te présenter clairement, options par options."
+)}
 ${check("decisions-noted", "J'ai noté mes décisions (je peux y revenir plus tard)")}
 `,
   },
@@ -390,6 +402,9 @@ ${warn(
 <li>Si le budget est serré, héberge sur <strong>Cloudflare Pages</strong> (gratuit même en pro) : ça enlève la ligne Vercel.</li>
 <li>Garde toujours un <strong>export CSV</strong> récent : c'est ta sauvegarde gratuite et ta liberté de partir ailleurs.</li>
 </ul>
+${bro(
+  "Le budget, c'est typiquement le genre de sujet à caler avec <strong>Matthieu</strong> avant de sortir la carte bleue. Tant que vous testez, ça reste à 0 €, donc rien ne presse. Quand viendra le moment de passer aux versions payantes, voyez ça ensemble — moi je suis là pour t'expliquer chaque ligne de la facture si besoin."
+)}
 ${check("costs-understood", "J'ai compris quand et pourquoi on commencera à payer")}
 `,
   },
@@ -445,7 +460,10 @@ ${check("e4b", "Créer la page /login (formulaire email + mot de passe)")}
 ${check("e4c", "Ajouter un « middleware » qui protège les pages privées")}
 ${callout("Un <strong>middleware</strong> est un videur placé à l'entrée : il vérifie le badge avant de laisser voir la page.")}
 ${check("e4d", "Tester : sans connexion, /dashboard renvoie vers /login ; avec connexion, on entre")}
-${warn("Ne jamais écrire un mot de passe en clair dans le code. C'est Supabase qui les stocke, chiffrés.")}`),
+${warn("Ne jamais écrire un mot de passe en clair dans le code. C'est Supabase qui les stocke, chiffrés.")}
+${bro(
+  "L'authentification, ça impressionne sur le papier, mais Supabase fait 90 % du boulot à ta place. Si tu coinces ici, c'est NORMAL, et c'est exactement le moment de m'appeler (via Claude Code) ou de sonner Matthieu. Rappelle-toi : il m'a demandé de t'aider justement pour que les étapes « techniques » ne te bloquent pas."
+)}`),
 
   step(5, "module-personnes", "Module Personnes", "Le cœur du CRM",
 `<p>Liste, ajout, modification, suppression, recherche et filtres des personnes.</p>
@@ -565,6 +583,9 @@ ${check("e14d", "Cliquer Deploy et attendre l'adresse en .vercel.app")}
 <h3>Revenir en arrière si ça casse</h3>
 <p>Dans Vercel → onglet « Deployments » → choisir une version précédente qui marchait → <strong>« Promote to Production »</strong>. L'ancienne version revient en 1 clic.</p>
 ${warn("Ne mets jamais les clés directement dans le code : toujours dans les « Environment Variables » de Vercel.")}
+${bro(
+  "Le jour où tu cliques sur « Deploy » et que l'appli s'ouvre sur ton téléphone… franchement, savoure. 🎉 Tu auras mis EN LIGNE un vrai logiciel, toi qui n'avais jamais codé. Envoie le lien à Matthieu, il sera fier (et un peu jaloux que tu y sois arrivé sans lui)."
+)}
 ${check("e14e", "Mon app est en ligne et accessible depuis le téléphone")}`),
 
   step(15, "documentation", "Documentation", "Pour s'y retrouver plus tard",
@@ -580,7 +601,10 @@ ${check("e14e", "Mon app est en ligne et accessible depuis le téléphone")}`),
 </ul>
 ${callout("Écris la doc <strong>au fur et à mesure</strong>, pas à la fin : c'est plus facile et tu n'oublies rien.")}
 ${check("e15a", "Le README explique comment lancer et utiliser l'app")}
-${check("e15b", "🎉 Le MVP est terminé, en ligne, testé et documenté")}`),
+${check("e15b", "🎉 Le MVP est terminé, en ligne, testé et documenté")}
+${bro(
+  "Bravo Franck, pour de vrai. 👏 Tu es parti de zéro et tu as construit une appli complète, étape par étape. C'est exactement ce que <strong>Matthieu</strong> espérait quand il m'a confié la mission de t'accompagner. Maintenant tu n'es plus « le débutant » : tu es celui qui a fini le projet. Prends un moment, et va le dire à ton beau-frère. 🍻"
+)}`),
 
   /* ---------------------------------------------------------- */
   {
@@ -620,7 +644,11 @@ ${callout("Règle de dépannage du débutant : <strong>lis le message d'erreur e
 <li>La doc Supabase (supabase.com/docs) et Vercel (vercel.com/docs).</li>
 <li>Claude Code sur le web : ouvre le dépôt et décris ton blocage.</li>
 <li>Reprends la notice de l'étape concernée, étape par étape.</li>
+<li><strong>Matthieu</strong>, ton beau-frère : c'est lui qui a lancé tout ça, il connaît le projet.</li>
 </ul>
+${bro(
+  "Dernier rappel, et pas le moindre : <strong>demander de l'aide n'est pas tricher</strong>, c'est même la bonne méthode. Matthieu m'a demandé de te conseiller, donc utilise-moi à fond, et n'hésite jamais à le solliciter lui aussi. Un blocage partagé, c'est un blocage à moitié résolu. On est une équipe, Franck."
+)}
 `,
   },
 ];
@@ -668,6 +696,10 @@ pre code{background:none;color:inherit;padding:0;}
 .check span{font-size:14.5px;}
 .pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;}
 .pill.green{background:var(--green);}
+.bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
+.bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
+.bro p{margin:4px 0;color:#451a03;}
+.bro-sign{font-size:12.5px;color:#92400e;margin-top:6px;font-style:italic;}
 `;
 
 /* ============================================================
