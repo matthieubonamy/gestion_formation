@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<title>Étape 10 — Export CSV</title><style>
+:root{--blue:#1d4ed8;--slate:#0f172a;--grey:#475569;--line:#e2e8f0;--soft:#f8fafc;--green:#059669;--amber:#d97706;}
+*{box-sizing:border-box;}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;}
+h2{font-size:20px;margin:22px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--line);}
+h3{font-size:16px;margin:18px 0 6px;color:var(--blue);}
+p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:4px 0;}
+code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:.92em;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:var(--blue);color:#fff;font-weight:600;} tr:nth-child(even) td{background:var(--soft);}
+.callout{background:#eff6ff;border-left:4px solid var(--blue);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.warnbox{background:#fffbeb;border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.decision{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:16px 0;}
+.decision-h{font-weight:700;color:#065f46;margin-bottom:4px;}
+.opts{display:grid;gap:8px;margin:10px 0;}
+.opt{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 12px;}
+.opt-h{font-weight:600;} .opt-b{font-size:14px;color:var(--grey);}
+.reco{background:#dcfce7;border-radius:6px;padding:8px 12px;font-size:14.5px;}
+.codewrap{position:relative;margin:10px 0;}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow:auto;font-size:13.5px;line-height:1.5;margin:0;}
+pre code{background:none;color:inherit;padding:0;}
+.copy{position:absolute;top:8px;right:8px;background:#334155;color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;}
+.copy:hover{background:#475569;}
+.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px;margin:6px 0;cursor:pointer;}
+.check input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;}
+.check span{font-size:14.5px;}
+.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;}
+.pill.green{background:var(--green);}
+
+@page{margin:15mm;}
+.page{max-width:780px;margin:0 auto;padding:10px;}
+.cover{border-bottom:4px solid var(--blue);padding-bottom:12px;margin-bottom:16px;}
+.cover .kicker{color:var(--blue);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.06em;}
+.cover h1{font-size:23px;margin:6px 0 2px;} .cover .sub{color:var(--grey);font-size:13px;}
+.cover .meta{margin-top:8px;color:var(--grey);font-size:11px;}
+.check{break-inside:avoid;} table,.callout,.warnbox,.decision,.codewrap{break-inside:avoid;}
+footer{margin-top:24px;padding-top:10px;border-top:1px solid var(--line);color:var(--grey);font-size:10.5px;text-align:center;}
+</style></head><body><div class="page">
+<div class="cover"><div class="kicker">Kit de reprise — PWA Gestion de formations</div>
+<h1>Étape 10 — Export CSV</h1><div class="sub">Récupérer ses données</div>
+<div class="meta">Notice 16 / 22 &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
+<p>Un bouton qui télécharge les données en fichier <strong>.csv</strong> (ouvrable dans Excel / Google Sheets).</p>
+<h3>Exports à proposer</h3>
+<p>Personnes, formations, inscriptions, relances.</p>
+<label class="check"><input type="checkbox" data-key="e10a"><span>Bouton « Exporter en CSV » sur chaque liste</span></label>
+<label class="check"><input type="checkbox" data-key="e10b"><span>Le fichier téléchargé s'ouvre correctement dans Excel</span></label>
+<div class="callout"><strong>CSV</strong> = un tableau en texte simple, une ligne par fiche, les colonnes séparées par des virgules. C'est universel.</div>
+<label class="check"><input type="checkbox" data-key="e10c"><span>Je peux récupérer toutes mes données en CSV</span></label>
+<footer>Kit de reprise — Notice « Étape 10 » • Projet PWA Gestion de formations</footer>
+</div></body></html>

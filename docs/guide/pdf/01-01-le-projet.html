@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<title>Le projet en 1 page</title><style>
+:root{--blue:#1d4ed8;--slate:#0f172a;--grey:#475569;--line:#e2e8f0;--soft:#f8fafc;--green:#059669;--amber:#d97706;}
+*{box-sizing:border-box;}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;}
+h2{font-size:20px;margin:22px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--line);}
+h3{font-size:16px;margin:18px 0 6px;color:var(--blue);}
+p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:4px 0;}
+code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:.92em;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:var(--blue);color:#fff;font-weight:600;} tr:nth-child(even) td{background:var(--soft);}
+.callout{background:#eff6ff;border-left:4px solid var(--blue);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.warnbox{background:#fffbeb;border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.decision{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:16px 0;}
+.decision-h{font-weight:700;color:#065f46;margin-bottom:4px;}
+.opts{display:grid;gap:8px;margin:10px 0;}
+.opt{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 12px;}
+.opt-h{font-weight:600;} .opt-b{font-size:14px;color:var(--grey);}
+.reco{background:#dcfce7;border-radius:6px;padding:8px 12px;font-size:14.5px;}
+.codewrap{position:relative;margin:10px 0;}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow:auto;font-size:13.5px;line-height:1.5;margin:0;}
+pre code{background:none;color:inherit;padding:0;}
+.copy{position:absolute;top:8px;right:8px;background:#334155;color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;}
+.copy:hover{background:#475569;}
+.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px;margin:6px 0;cursor:pointer;}
+.check input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;}
+.check span{font-size:14.5px;}
+.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;}
+.pill.green{background:var(--green);}
+
+@page{margin:15mm;}
+.page{max-width:780px;margin:0 auto;padding:10px;}
+.cover{border-bottom:4px solid var(--blue);padding-bottom:12px;margin-bottom:16px;}
+.cover .kicker{color:var(--blue);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.06em;}
+.cover h1{font-size:23px;margin:6px 0 2px;} .cover .sub{color:var(--grey);font-size:13px;}
+.cover .meta{margin-top:8px;color:var(--grey);font-size:11px;}
+.check{break-inside:avoid;} table,.callout,.warnbox,.decision,.codewrap{break-inside:avoid;}
+footer{margin-top:24px;padding-top:10px;border-top:1px solid var(--line);color:var(--grey);font-size:10.5px;text-align:center;}
+</style></head><body><div class="page">
+<div class="cover"><div class="kicker">Kit de reprise — PWA Gestion de formations</div>
+<h1>Le projet en 1 page</h1><div class="sub">Ce qu'on construit et pourquoi</div>
+<div class="meta">Notice 01 / 22 &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
+
+<p>On construit une <strong>application web</strong> (une « PWA ») pour gérer une activité de formation. C'est un <strong>mini-CRM</strong> : un carnet d'adresses intelligent + un suivi des formations + des relances.</p>
+<div class="callout"><strong>PWA = Progressive Web App.</strong> C'est un site web qu'on peut <strong>installer sur le téléphone</strong> comme une appli (une icône sur l'écran d'accueil), qui s'ouvre en plein écran. Pas besoin de l'App Store ni de Google Play.</div>
+<h3>Ce que l'application sait faire (le MVP)</h3>
+<table><thead><tr><th>Fonction</th><th>À quoi ça sert</th></tr></thead><tbody><tr><td>Connexion admin</td><td>Seul le formateur entre dans l'app (mot de passe).</td></tr><tr><td>Personnes</td><td>Ajouter / modifier / supprimer / chercher des prospects et clients.</td></tr><tr><td>Formations</td><td>Le catalogue : nom, prix, dates, statut.</td></tr><tr><td>Inscriptions</td><td>Relier une personne à une formation, suivre présence et paiement.</td></tr><tr><td>Mini-CRM</td><td>Dates de relance, priorité, historique.</td></tr><tr><td>Tableau de bord</td><td>Les chiffres clés en un coup d'œil.</td></tr><tr><td>Export CSV</td><td>Récupérer toutes les données dans Excel.</td></tr></tbody></table>
+<h3>Ce qu'on ne fait PAS au début (volontairement)</h3>
+<p>Paiement en ligne, espace apprenant, espace formateur, signature électronique, IA, messagerie, app mobile native. <strong>On reste simple et utile.</strong></p>
+<h3>Avec quels outils ?</h3>
+<p><strong>Next.js</strong> (le site + le cerveau), <strong>Supabase</strong> (la base de données + les mots de passe), <strong>Vercel</strong> (la mise en ligne). On explique chacun plus loin.</p>
+<label class="check"><input type="checkbox" data-key="project-understood"><span>J'ai compris ce que fait l'application et ce qu'elle ne fait pas</span></label>
+
+<footer>Kit de reprise — Notice « Comprendre » • Projet PWA Gestion de formations</footer>
+</div></body></html>
