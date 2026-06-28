@@ -1,37 +1,48 @@
 /**
- * Générateur du "Kit de reprise" pour l'associé.
- * - Produit un guide interactif (docs/guide/index.html), mobile d'abord.
- * - Produit une notice HTML par étape (docs/guide/pdf/NN-slug.html),
- *   ensuite convertie en PDF par Chromium (voir build.sh).
+ * Générateur du "Kit de reprise" de Franck — version pas-à-pas exhaustive.
  *
- * Tout le CONTENU est dans le tableau NOTICES ci-dessous : une seule source,
- * facile à corriger. Aucune dépendance externe (juste Node + fs).
+ * Produit :
+ *  1) Un mini-site MULTI-PAGES : docs/guide/index.html (sommaire) +
+ *     docs/guide/pages/NN-slug.html (une page par étape, navigable,
+ *     précédent/suivant, cases à cocher mémorisées). Chaque page est
+ *     autonome (CSS intégré) donc téléchargeable seule.
+ *  2) Une notice PDF par étape : docs/guide/pdf/NN-slug.pdf (via Chromium).
+ *
+ * Tout le CONTENU est dans NOTICES ci-dessous : une seule source.
+ * Aucune dépendance externe (juste Node).
  */
 const fs = require("fs");
 const path = require("path");
 
 const OUT = __dirname;
+const PAGES_DIR = path.join(OUT, "pages");
 const PDF_DIR = path.join(OUT, "pdf");
 
-/* ---------- petits utilitaires de contenu ---------- */
+/* ---------- utilitaires de contenu ---------- */
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-// Bloc de code copiable (le bouton "copier" n'agit que dans le guide interactif)
+// Lien cliquable ET visible (utile aussi à l'impression)
+function link(url, label) {
+  return `<a class="ext" href="${url}" target="_blank" rel="noopener">${label || url}</a>`;
+}
+// Bloc de code copiable
 function code(text) {
   return `<div class="codewrap"><button class="copy" type="button">Copier</button><pre><code>${esc(text)}</code></pre></div>`;
 }
-// Bloc "décision" : titre + options + recommandation
-function decision(title, intro, options, reco) {
-  const opts = options
-    .map(
-      (o) =>
-        `<div class="opt"><div class="opt-h">${o.name}</div><div class="opt-b">${o.body}</div></div>`
-    )
-    .join("");
-  return `<div class="decision"><div class="decision-h">⚖️ Décision : ${title}</div>${
-    intro ? `<p>${intro}</p>` : ""
-  }<div class="opts">${opts}</div><div class="reco">✅ <strong>Recommandation :</strong> ${reco}</div></div>`;
+// Texte exact à coller à un agent de code (Codex / Claude Code)
+function promptClaude(text) {
+  return `<div class="prompt"><div class="prompt-h">🤖 Prompt à copier-coller dans Codex (ou Claude Code)</div><div class="codewrap"><button class="copy" type="button">Copier</button><pre><code>${esc(
+    text
+  )}</code></pre></div></div>`;
+}
+// Liste d'étapes numérotées (chaque item est du HTML)
+function ol(items) {
+  return `<ol class="steps">${items.map((i) => `<li>${i}</li>`).join("")}</ol>`;
+}
+// Encadré de vérification
+function verif(text) {
+  return `<div class="verif">✅ <strong>Vérifie :</strong> ${text}</div>`;
 }
 function callout(text) {
   return `<div class="callout">${text}</div>`;
@@ -39,634 +50,610 @@ function callout(text) {
 function warn(text) {
   return `<div class="warnbox">⚠️ ${text}</div>`;
 }
-// Une case à cocher (sauvegardée dans le guide interactif)
+function decision(title, intro, options, reco) {
+  const opts = options
+    .map((o) => `<div class="opt"><div class="opt-h">${o.name}</div><div class="opt-b">${o.body}</div></div>`)
+    .join("");
+  return `<div class="decision"><div class="decision-h">⚖️ Décision : ${title}</div>${
+    intro ? `<p>${intro}</p>` : ""
+  }<div class="opts">${opts}</div><div class="reco">✅ <strong>Recommandation :</strong> ${reco}</div></div>`;
+}
 function check(id, text) {
   return `<label class="check"><input type="checkbox" data-key="${id}"><span>${text}</span></label>`;
 }
-// Le "mot de Matthieu via Claude" : rappelle à Franck pourquoi je suis là.
 function bro(text) {
   return `<div class="bro"><div class="bro-h">💬 Un mot, Franck</div><p>${text}</p><div class="bro-sign">— Claude, l'assistant que <strong>Matthieu (ton beau-frère)</strong> a chargé de t'aider 🤝</div></div>`;
 }
-// Un encouragement direct, de la part de Matthieu (relayé par moi).
 function motMatthieu(text) {
   return `<div class="matt"><div class="matt-h">❤️ De la part de Matthieu</div><p>${text}</p><div class="matt-sign">— Matthieu, ton beau-frère (message qu'il m'a demandé de te transmettre)</div></div>`;
 }
 function table(headers, rows) {
   const h = headers.map((x) => `<th>${x}</th>`).join("");
-  const r = rows
-    .map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join("")}</tr>`)
-    .join("");
+  const r = rows.map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
   return `<table><thead><tr>${h}</tr></thead><tbody>${r}</tbody></table>`;
+}
+// Fabrique une notice "étape du projet"
+function step(num, slug, title, sub, body) {
+  return {
+    slug: "etape-" + String(num).padStart(2, "0") + "-" + slug,
+    tag: "Étape " + num,
+    title: "Étape " + num + " — " + title,
+    sub,
+    body,
+  };
 }
 
 /* ============================================================
- *  LE CONTENU — une entrée = une notice = un PDF
+ *  CONTENU — une entrée = une page = un PDF
  * ============================================================ */
 const NOTICES = [
-  /* ---------------------------------------------------------- */
+  /* ===== 00 — BIENVENUE ===== */
   {
     slug: "00-bienvenue",
     tag: "Départ",
     title: "Salut Franck 👋",
     sub: "À lire en premier — 5 minutes, promis",
     body: `
-<p>Salut Franck ! 🙌 C'est ton kit perso pour <strong>reprendre et finir tranquillement</strong> le projet d'appli de gestion de formations — même si tu n'as <strong>jamais codé de ta vie</strong>. On y va à ton rythme, pas de stress.</p>
+<p>Salut Franck ! 🙌 C'est ton kit perso pour <strong>reprendre et finir tranquillement</strong> le projet d'appli de gestion de formations — même si tu n'as <strong>jamais codé de ta vie</strong>. On y va à ton rythme.</p>
 ${bro(
-  "Avant tout, sache une chose : si je suis là, c'est parce que <strong>Matthieu, ton beau-frère</strong>, m'a personnellement demandé de te prendre par la main sur ce projet. Ses mots, en gros : « aide Franck, conseille-le, explique-lui tout simplement, et fais en sorte qu'il y arrive seul. » Donc considère-moi comme <strong>ton copilote, missionné par Matthieu</strong> : tu n'es jamais tout seul là-dedans."
+  "Si je suis là, c'est parce que <strong>Matthieu, ton beau-frère</strong>, m'a demandé de te prendre par la main sur ce projet : « aide Franck, conseille-le, explique-lui tout simplement. » Considère-moi comme <strong>ton copilote</strong> : tu n'es jamais seul là-dedans."
 )}
 ${motMatthieu(
-  "Franck, je te connais : t'es du genre à croire que « c'est pas pour toi », ces trucs d'informatique. Eh bien je te le dis franchement — <strong>t'en es parfaitement capable</strong>. Je ne t'aurais pas embarqué là-dedans sinon. Avance à ton rythme, trompe-toi, recommence, c'est comme ça qu'on apprend. Je suis derrière toi à fond, et Claude est là pour t'aider à chaque étape. On va y arriver. 💪"
+  "Franck, t'es du genre à croire que « l'informatique, c'est pas pour moi ». Eh bien je te le dis franchement : <strong>t'en es parfaitement capable</strong>. Avance, trompe-toi, recommence — c'est comme ça qu'on apprend. Je suis derrière toi à fond. 💪"
 )}
-<p>Je t'ai préparé tout ça comme je l'expliquerais à un pote au comptoir : simple, sans jargon, et avec des cases à cocher pour pas se perdre. Quand un mot fait peur, je te le traduis juste à côté.</p>
+<h3>Comment ce guide marche</h3>
+${ol([
+  "Tu fais les pages <strong>dans l'ordre</strong>, une à la fois. En bas de chaque page : un bouton <strong>« Suivant ▶ »</strong>.",
+  "Chaque action est <strong>numérotée</strong> : tu suis 1, 2, 3… sans réfléchir.",
+  "Après chaque action importante, un encadré vert <strong>« ✅ Vérifie »</strong> te dit comment savoir que c'est réussi.",
+  "Tu <strong>coches les cases</strong> au fur et à mesure : ta progression est sauvegardée dans ce navigateur (la barre en haut se remplit).",
+])}
 ${callout(
-  "<strong>Et je ne vais pas te mentir</strong> : il y aura des moments un peu galère, des messages d'erreur incompréhensibles, des soirées où ça coince. C'est <strong>normal</strong> et ça arrive à TOUS les développeurs, débutants comme pros. La différence, ce n'est pas le talent : c'est juste de ne pas lâcher et de demander de l'aide au bon moment. Ce guide est fait pour ça."
+  "<strong>Mots compliqués ?</strong> Je te les traduis dans des encadrés bleus. <strong>Pièges ?</strong> Encadrés orange. <strong>Choix à faire ?</strong> Encadrés verts « ⚖️ Décision »."
 )}
-<h3>Comment c'est organisé</h3>
-<ul>
-<li>Chaque <strong>notice</strong> = une étape. Tu les fais <strong>dans l'ordre</strong>, une par jour ou une par soirée, sans te presser.</li>
-<li>Quand tu vois un <span class="pill green">À FAIRE</span>, c'est une action concrète. Coche la case quand c'est fait.</li>
-<li>Quand tu vois <strong>⚖️ Décision</strong>, c'est un choix à faire : je te donne <strong>toutes</strong> les options et <strong>ma recommandation</strong>.</li>
-<li>Les <strong>encadrés bleus</strong> expliquent un mot compliqué. Les <strong>encadrés orange</strong> préviennent d'un piège.</li>
-</ul>
-<h3>Combien de temps ? Combien ça coûte ?</h3>
-<p>Compte <strong>quelques soirées</strong> pour l'installation et la reprise, puis on avance étape par étape. Pour <strong>tester</strong>, le coût est de <strong>0 € </strong> (tout existe en version gratuite). On ne paie que plus tard, quand l'activité grandit — c'est détaillé dans la notice « Coûts ».</p>
 ${callout(
-  "<strong>Tu utilises surtout ton téléphone ?</strong> Pas de souci : ce guide se lit parfaitement au téléphone, et je te montre comment <em>avancer depuis un navigateur</em> (même sans PC) dans la notice « Récupérer le travail ». Pour <em>coder confortablement</em>, un <strong>PC Windows</strong> reste recommandé."
+  "<strong>Tu lis sur ton téléphone ?</strong> Parfait pour avancer dans la lecture et créer tes comptes. Pour <em>coder</em>, garde un <strong>PC Windows</strong> à côté (les pages t'indiquent quand le PC est nécessaire)."
 )}
-<h3>La règle d'or</h3>
-<p>On ne fait <strong>jamais tout d'un coup</strong>. Une étape, on teste, on vérifie que ça marche, et seulement après on passe à la suivante. C'est plus lent, mais tu te perds jamais. Et si tu bloques : tu respires, tu relis la notice, et au pire tu m'envoies un message. 😉</p>
-<p>Allez Franck, on est partis. 🚀</p>
-${check("welcome-read", "OK c'est bon, j'ai pigé comment ça marche")}
+<h3>La vérité, sans te mentir</h3>
+${warn(
+  "Il y aura des moments un peu galère, des messages d'erreur incompréhensibles. C'est <strong>normal</strong> et ça arrive à TOUS les développeurs. La différence, ce n'est pas le talent : c'est de ne pas lâcher et de demander de l'aide au bon moment. Ce guide est fait pour ça."
+)}
+${check("welcome-read", "OK, j'ai pigé comment ça marche. On y va !")}
 `,
   },
 
-  /* ---------------------------------------------------------- */
+  /* ===== 01 — LE PROJET ===== */
   {
     slug: "01-le-projet",
     tag: "Comprendre",
     title: "Le projet en 1 page",
     sub: "Ce qu'on construit et pourquoi",
     body: `
-<p>On construit une <strong>application web</strong> (une « PWA ») pour gérer une activité de formation. C'est un <strong>mini-CRM</strong> : un carnet d'adresses intelligent + un suivi des formations + des relances.</p>
+<p>On construit une <strong>application web</strong> (une « PWA ») pour gérer une activité de formation : un <strong>carnet d'adresses intelligent</strong> + un suivi des formations + des relances.</p>
 ${callout(
-  "<strong>PWA = Progressive Web App.</strong> C'est un site web qu'on peut <strong>installer sur le téléphone</strong> comme une appli (une icône sur l'écran d'accueil), qui s'ouvre en plein écran. Pas besoin de l'App Store ni de Google Play."
+  "<strong>PWA = Progressive Web App.</strong> Un site web qu'on peut <strong>installer sur le téléphone</strong> comme une appli (icône sur l'écran d'accueil). Pas besoin de l'App Store."
 )}
-<h3>Ce que l'application sait faire (le MVP)</h3>
+<h3>Ce que l'application saura faire</h3>
 ${table(
   ["Fonction", "À quoi ça sert"],
   [
-    ["Connexion admin", "Seul le formateur entre dans l'app (mot de passe)."],
-    ["Personnes", "Ajouter / modifier / supprimer / chercher des prospects et clients."],
+    ["Connexion admin", "Seul toi entres dans l'app (email + mot de passe)."],
+    ["Personnes", "Ajouter / modifier / supprimer / chercher prospects et clients."],
     ["Formations", "Le catalogue : nom, prix, dates, statut."],
-    ["Inscriptions", "Relier une personne à une formation, suivre présence et paiement."],
+    ["Inscriptions", "Relier une personne à une formation ; suivre présence et paiement."],
     ["Mini-CRM", "Dates de relance, priorité, historique."],
     ["Tableau de bord", "Les chiffres clés en un coup d'œil."],
     ["Export CSV", "Récupérer toutes les données dans Excel."],
   ]
 )}
-<h3>Ce qu'on ne fait PAS au début (volontairement)</h3>
-<p>Paiement en ligne, espace apprenant, espace formateur, signature électronique, IA, messagerie, app mobile native. <strong>On reste simple et utile.</strong></p>
-<h3>Avec quels outils ?</h3>
-<p><strong>Next.js</strong> (le site + le cerveau), <strong>Supabase</strong> (la base de données + les mots de passe), <strong>Vercel</strong> (la mise en ligne). On explique chacun plus loin.</p>
-${check("project-understood", "J'ai compris ce que fait l'application et ce qu'elle ne fait pas")}
-`,
-  },
-
-  /* ---------------------------------------------------------- */
-  {
-    slug: "02-recuperer-le-travail",
-    tag: "Reprise",
-    title: "Récupérer le travail déjà fait",
-    sub: "Deux chemins : depuis le téléphone (cloud) OU depuis un PC Windows",
-    body: `
-<p>Une partie est <strong>déjà faite</strong> : l'analyse du besoin (Étape 1) et le schéma de la base de données (Étape 2). Tout est rangé dans un <strong>dépôt Git</strong> sur GitHub (un « dépôt » = un dossier de projet avec son historique).</p>
-${callout(
-  "<strong>Git & GitHub.</strong> <strong>Git</strong> est un carnet qui mémorise chaque modification du projet. <strong>GitHub</strong> est le site qui héberge ce carnet en ligne pour qu'on puisse le partager et le retrouver de n'importe où."
-)}
-<h3>Le dépôt du projet</h3>
-${code("matthieubonamy/gestion_formation\nBranche de travail : claude/training-management-pwa-5ibmi2")}
-
-<h2>Chemin A — Depuis ton téléphone / un navigateur (le plus simple pour commencer)</h2>
-<p>Tu peux <strong>tout lire et même faire avancer le projet sans rien installer</strong>, depuis un navigateur (téléphone ou PC) :</p>
-${check("a1", "Créer un compte gratuit sur github.com (notice suivante l'explique)")}
-${check("a2", "Demander à Matthieu de t'ajouter comme collaborateur du dépôt (Settings → Collaborators)")}
-${check("a3", "Ouvrir le dépôt dans le navigateur pour lire les fichiers (dossier docs/ et db/)")}
-${callout(
-  "<strong>Astuce « coder depuis le navigateur ».</strong> Le projet a été démarré avec <strong>Claude Code sur le web</strong> (code.claude.com). Tu peux y ouvrir le même dépôt et <em>demander à l'assistant</em> de continuer une étape, même depuis un téléphone. C'est le moyen le plus accessible si tu n'as pas le PC sous la main. Alternative : <strong>GitHub Codespaces</strong> (un PC de développement dans le navigateur, gratuit quelques heures par mois)."
-)}
-${warn(
-  "Sur téléphone, on peut <strong>lire, valider, écrire des textes et piloter l'assistant</strong>, mais taper du code à la main est inconfortable. Pour les étapes de code, garde un PC Windows à portée."
-)}
-
-<h2>Chemin B — Depuis ton PC Windows (pour coder vraiment)</h2>
-<p>Tu installes 3 outils (détaillés dans la notice « Installer les outils ») puis tu <strong>clones</strong> le projet (= télécharger une copie liée au dépôt) :</p>
-${check("b1", "Installer Git, Node.js et VS Code (notice « Installer les outils »)")}
-${check("b2", "Ouvrir le terminal et se placer dans un dossier de travail")}
-${code(
-  'cd Documents\ngit clone https://github.com/matthieubonamy/gestion_formation.git\ncd gestion_formation\ngit checkout claude/training-management-pwa-5ibmi2'
-)}
-<p>La dernière commande te place sur <strong>la branche de travail</strong> (la version en cours du projet).</p>
-${check("b3", "J'ai cloné le projet et je suis sur la bonne branche")}
-${bro(
-  "Pour l'accès au dépôt, pas besoin de chercher midi à quatorze heures : c'est <strong>Matthieu</strong> qui t'ajoute en deux clics (il a les droits). Un petit message à ton beau-frère et c'est réglé. Il sait que tu vas lui demander, il m'a dit de te dire de ne pas hésiter."
-)}
-<h3>Recréer de zéro (option « tout refaire soi-même »)</h3>
-<p>Si tu préfères <strong>tout reconstruire pour apprendre</strong>, tu n'as pas besoin de cloner : tu suis simplement les notices des Étapes 1 à 15 dans l'ordre, en repartant d'un dossier vide. Les deux fichiers déjà faits (<code>docs/</code> et <code>db/schema.sql</code>) te servent alors de <strong>modèle</strong> à recopier.</p>
-`,
-  },
-
-  /* ---------------------------------------------------------- */
-  {
-    slug: "03-installer-les-outils",
-    tag: "Installation",
-    title: "Installer les outils (PC Windows)",
-    sub: "Git, Node.js, VS Code — avec l'alternative téléphone/cloud",
-    body: `
-<p>Pour coder sur Windows, on installe <strong>3 logiciels gratuits</strong>. Fais-les dans l'ordre.</p>
-
-<h3>1) Node.js (le moteur qui fait tourner l'application)</h3>
-${callout(
-  "<strong>Node.js</strong> permet d'exécuter du code JavaScript sur ton ordinateur. Il vient avec <strong>npm</strong>, l'outil qui télécharge les briques toutes faites dont le projet a besoin."
-)}
-${check("n1", "Aller sur nodejs.org et télécharger la version « LTS » (la stable)")}
-${check("n2", "Lancer l'installateur, cliquer Suivant partout, Installer, Terminer")}
-${check("n3", "Vérifier : ouvrir « Invite de commandes » (chercher cmd) et taper la commande ci-dessous")}
-${code("node --version\nnpm --version")}
-<p>Si deux numéros s'affichent (ex. <code>v22.x</code> et <code>10.x</code>), c'est bon ✅.</p>
-
-<h3>2) Git (le carnet de versions)</h3>
-${check("g1", "Aller sur git-scm.com et télécharger « Git for Windows »")}
-${check("g2", "Installer en laissant les options par défaut (cliquer Suivant partout)")}
-${check("g3", "Vérifier avec la commande")}
-${code("git --version")}
-
-<h3>3) VS Code (l'éditeur où on écrit le code)</h3>
-${callout(
-  "<strong>VS Code</strong> est un traitement de texte spécialisé pour le code : couleurs, suggestions, terminal intégré. Gratuit, fait par Microsoft."
-)}
-${check("v1", "Aller sur code.visualstudio.com et télécharger pour Windows")}
-${check("v2", "Installer (cocher « Ajouter à PATH » si proposé), puis ouvrir VS Code")}
-${check("v3", "Dans VS Code : Fichier → Ouvrir le dossier → choisir gestion_formation")}
-
-${warn(
-  "Si une commande « n'est pas reconnue », <strong>ferme et rouvre</strong> l'Invite de commandes : les nouveaux logiciels ne sont visibles qu'après redémarrage du terminal."
-)}
-
-<h3>Alternative sans rien installer (téléphone / cloud)</h3>
-<p>Tu n'as pas de PC sous la main ? Tu peux travailler dans le navigateur :</p>
+<h3>Les 3 outils du projet (expliqués plus loin, pas à pas)</h3>
 ${table(
-  ["Outil", "Ce que ça donne", "Coût"],
+  ["Outil", "Son rôle", "Adresse"],
   [
-    ["GitHub Codespaces", "Un PC de dev complet dans le navigateur (Node, Git déjà prêts).", "Gratuit ~60 h/mois"],
-    ["Claude Code sur le web", "Tu décris ce que tu veux, l'assistant code dans le dépôt.", "Selon ton abonnement"],
+    ["Next.js", "Le site + le cerveau de l'app", link("https://nextjs.org")],
+    ["Supabase", "La base de données + les mots de passe", link("https://supabase.com")],
+    ["Vercel", "Mettre l'app en ligne", link("https://vercel.com")],
   ]
 )}
-${check("alt-cloud", "J'ai noté l'option cloud au cas où je n'ai pas le PC")}
+${check("project-understood", "J'ai compris ce que fait l'application")}
 `,
   },
 
-  /* ---------------------------------------------------------- */
+  /* ===== 02 — INSTALLER LES OUTILS (PC Windows) ===== */
   {
-    slug: "04-creer-les-comptes",
-    tag: "Comptes",
-    title: "Créer ses comptes (gratuits)",
-    sub: "GitHub, Supabase, Vercel",
+    slug: "02-installer-outils",
+    tag: "Installation",
+    title: "Installer les outils sur ton PC Windows",
+    sub: "Node.js, Git, VS Code — clic par clic, avec vérifications",
     body: `
-<p>Trois comptes gratuits suffisent pour tout le MVP. Utilise <strong>la même adresse email</strong> partout pour t'y retrouver, et un <strong>gestionnaire de mots de passe</strong> (ex. le trousseau du navigateur) pour les garder.</p>
+<p>Pour coder, on installe <strong>3 logiciels gratuits</strong>, dans l'ordre. Prévois 20 minutes. (Si tu n'as pas de PC maintenant, lis la page « Récupérer le travail » : on peut commencer depuis le navigateur.)</p>
 
-<h3>1) GitHub — héberge le code</h3>
-${check("gh1", "Aller sur github.com → Sign up, créer le compte avec ton email")}
-${check("gh2", "Confirmer l'email, activer la double authentification (2FA) — important pour la sécurité")}
-${check("gh3", "Demander à Matthieu de t'ajouter au dépôt (ou créer le tien si tu repars de zéro)")}
-
-<h3>2) Supabase — la base de données + les mots de passe de l'app</h3>
+<h3>Logiciel 1 — Node.js (le moteur de l'app)</h3>
 ${callout(
-  "<strong>Supabase</strong> te donne d'un coup : une base de données (le classeur des données), l'authentification (le portier), le stockage de fichiers et des sauvegardes. Gratuit pour démarrer."
+  "<strong>Node.js</strong> fait tourner le code de l'application sur ton ordinateur. Il vient avec <strong>npm</strong>, l'outil qui télécharge les briques toutes faites du projet."
 )}
-${check("sb1", "Aller sur supabase.com → Start your project (connexion possible avec GitHub)")}
-${check("sb2", "Créer une « Organization » (ton activité) puis un « Project »")}
-${check("sb3", "Choisir une région proche (ex. Europe / Paris) et un mot de passe de base de données SOLIDE (le noter)")}
-${warn(
-  "Sur le plan gratuit, un projet Supabase est <strong>mis en pause après 1 semaine sans activité</strong>. Il suffit de le réactiver en un clic. Pour une vraie mise en production continue, on passera au plan payant (voir « Coûts »)."
+${ol([
+  `Ouvre ton navigateur (Edge, Chrome…) et va sur ${link("https://nodejs.org/en/download", "https://nodejs.org/en/download")}.`,
+  "Repère le bouton avec la mention <strong>« LTS »</strong> (= la version stable, recommandée). Clique dessus pour télécharger le fichier <code>.msi</code> Windows.",
+  "En bas du navigateur, clique sur le fichier téléchargé (ex. <code>node-vXX-x64.msi</code>) pour lancer l'installation.",
+  "Une fenêtre s'ouvre : clique <strong>Next</strong>, coche <strong>« I accept… »</strong>, puis <strong>Next</strong> à chaque écran (laisse tout par défaut), puis <strong>Install</strong>. Windows demande l'autorisation : clique <strong>Oui</strong>.",
+  "Quand c'est fini, clique <strong>Finish</strong>.",
+])}
+${verif(
+  "Ouvre le menu Démarrer, tape <code>cmd</code>, ouvre « Invite de commandes ». Tape la commande ci-dessous et appuie sur Entrée."
 )}
+${code("node --version\nnpm --version")}
+<p>Deux numéros doivent s'afficher (ex. <code>v22.3.0</code> et <code>10.8.1</code>). Si oui → c'est réussi ✅.</p>
+${check("node-ok", "Node.js et npm sont installés (deux numéros s'affichent)")}
 
-<h3>3) Vercel — met le site en ligne</h3>
-${callout(
-  "<strong>Vercel</strong> publie l'application sur Internet à partir du code GitHub, automatiquement à chaque modification. C'est le créateur de Next.js."
-)}
-${check("vc1", "Aller sur vercel.com → Sign up avec GitHub")}
-${check("vc2", "Autoriser Vercel à accéder au dépôt (on s'en sert à l'étape Déploiement)")}
+<h3>Logiciel 2 — Git (le carnet de versions)</h3>
+${callout("<strong>Git</strong> mémorise chaque modification du projet et permet de récupérer/envoyer le code sur GitHub.")}
+${ol([
+  `Va sur ${link("https://git-scm.com/download/win", "https://git-scm.com/download/win")}. Le téléchargement démarre tout seul (sinon clique « 64-bit Git for Windows Setup »).`,
+  "Lance le fichier téléchargé. Clique <strong>Oui</strong> à l'autorisation Windows.",
+  "À chaque écran de l'installateur, clique simplement <strong>Next</strong> (les options par défaut conviennent très bien), puis <strong>Install</strong>, puis <strong>Finish</strong>.",
+])}
+${verif("Ferme puis rouvre l'Invite de commandes (important !), et tape :")}
+${code("git --version")}
+<p>Un numéro doit s'afficher (ex. <code>git version 2.45.0</code>) → réussi ✅.</p>
+${check("git-ok", "Git est installé")}
+
+<h3>Logiciel 3 — VS Code (l'éditeur de code)</h3>
+${callout("<strong>VS Code</strong> est l'endroit où on écrit et où l'on voit le code. Gratuit, fait par Microsoft.")}
+${ol([
+  `Va sur ${link("https://code.visualstudio.com/download", "https://code.visualstudio.com/download")} et clique le bouton <strong>Windows</strong>.`,
+  "Lance le fichier téléchargé, accepte l'accord, clique <strong>Suivant</strong>.",
+  "À l'écran « Tâches supplémentaires », <strong>coche</strong> « Ajouter à PATH » et « Ajouter l'action Ouvrir avec Code… » (ça aide plus tard). Puis <strong>Suivant</strong> → <strong>Installer</strong> → <strong>Terminer</strong>.",
+])}
+${verif("VS Code s'ouvre (un écran de bienvenue). C'est bon ✅.")}
+${check("vscode-ok", "VS Code est installé et s'ouvre")}
+
 ${warn(
-  "Le plan <strong>gratuit (Hobby) de Vercel est prévu pour un usage non-commercial</strong>. Pour une utilisation professionnelle réelle, il faut le plan <strong>Pro (~20 $/mois)</strong>. Pour <em>tester</em>, le gratuit suffit. Détails et alternatives dans « Coûts »."
+  "Si une commande « n'est pas reconnue », c'est presque toujours que le terminal était déjà ouvert avant l'installation. <strong>Ferme-le et rouvre-le</strong>, puis réessaie."
 )}
-${check("accounts-done", "Mes 3 comptes sont créés")}
+${bro(
+  "Trois installations, trois vérifications. Si une vérif ne donne pas le bon résultat, ne force pas : reprends l'étape tranquillement, ou envoie-moi le message d'erreur (copie-colle-le à Claude Code). On débloque ça vite."
+)}
 `,
   },
 
-  /* ---------------------------------------------------------- */
+  /* ===== 03 — CRÉER LES COMPTES ===== */
+  {
+    slug: "03-creer-comptes",
+    tag: "Comptes",
+    title: "Créer tes 3 comptes (clic par clic)",
+    sub: "GitHub, Supabase, Vercel — tout est gratuit pour démarrer",
+    body: `
+<p>Trois comptes suffisent. <strong>Conseil :</strong> utilise <strong>la même adresse email</strong> partout, et laisse ton navigateur <strong>enregistrer les mots de passe</strong>.</p>
+
+<h3>Compte 1 — GitHub (héberge le code)</h3>
+${ol([
+  `Va sur ${link("https://github.com/signup", "https://github.com/signup")}.`,
+  "Saisis ton <strong>email</strong>, clique <strong>Continue</strong>.",
+  "Choisis un <strong>mot de passe</strong> (note-le), clique <strong>Continue</strong>.",
+  "Choisis un <strong>nom d'utilisateur</strong> (ex. <code>franck-formation</code>), clique <strong>Continue</strong>.",
+  "Résous le petit puzzle de vérification, puis clique <strong>Create account</strong>.",
+  "GitHub envoie un <strong>code par email</strong> : ouvre ta boîte mail, recopie le code dans GitHub.",
+  "Aux questions « how many people / student / interests », tu peux cliquer <strong>Skip</strong> en bas. Choisis le plan <strong>Free</strong>.",
+])}
+${verif(`Tu arrives sur ton tableau de bord GitHub (page d'accueil avec « Dashboard »). Ton compte est créé ✅.`)}
+<p><strong>Sécurité (important) :</strong> active la double authentification.</p>
+${ol([
+  `Va sur ${link("https://github.com/settings/security", "https://github.com/settings/security")}.`,
+  "Clique <strong>Enable two-factor authentication</strong> et suis les indications (le plus simple : une appli type « Authy » ou « Google Authenticator » sur ton téléphone).",
+])}
+${check("github-ok", "Mon compte GitHub est créé et la double authentification est activée")}
+${callout(
+  "Pour <strong>reprendre le projet existant</strong>, Matthieu devra t'ajouter au dépôt (il fait ça en 2 clics depuis ses réglages). Envoie-lui simplement ton <strong>nom d'utilisateur GitHub</strong>. Détails sur la page « Récupérer le travail »."
+)}
+
+<h3>Compte 2 — Supabase (base de données + mots de passe de l'app)</h3>
+${callout(
+  "<strong>Supabase</strong> te donne d'un coup : la base de données (le grand classeur), l'authentification (le portier), le stockage et les sauvegardes. Gratuit pour démarrer."
+)}
+${ol([
+  `Va sur ${link("https://supabase.com", "https://supabase.com")} et clique <strong>Start your project</strong> (en haut à droite).`,
+  "Clique <strong>Continue with GitHub</strong> (le plus simple, ça réutilise ton compte GitHub). Autorise en cliquant <strong>Authorize</strong>.",
+  "Tu arrives sur le tableau de bord Supabase. Clique <strong>New project</strong>.",
+  "Si on te demande de créer une <strong>Organization</strong> : donne un nom (ex. le nom de ton organisme), choisis le type <strong>Personal</strong> et le plan <strong>Free</strong>, clique <strong>Create organization</strong>.",
+  "Pour le projet : <strong>Name</strong> = <code>gestion-formation</code>. <strong>Database Password</strong> = clique « Generate a password » et <strong>copie-le précieusement</strong> (colle-le dans tes notes). <strong>Region</strong> = choisis <strong>Central EU (Frankfurt)</strong> ou <strong>West EU (Paris)</strong> — proche de toi.",
+  "Clique <strong>Create new project</strong>. Patiente 1 à 2 minutes (Supabase prépare ta base).",
+])}
+${verif(`Tu vois le tableau de bord du projet avec un menu à gauche (Table Editor, SQL Editor, Authentication…). C'est prêt ✅.`)}
+${warn(
+  "Sur le plan gratuit, un projet est <strong>mis en pause après 1 semaine sans activité</strong>. On le réactive en 1 clic (bouton « Restore »). Pour une mise en service continue, on passera au plan payant — à voir avec ton employeur (page « Coûts »)."
+)}
+${check("supabase-ok", "Mon projet Supabase est créé et le mot de passe de la base est noté")}
+
+<h3>Compte 3 — Vercel (met l'app en ligne)</h3>
+${callout("<strong>Vercel</strong> publie l'application sur Internet à partir du code GitHub, tout seul à chaque modification.")}
+${ol([
+  `Va sur ${link("https://vercel.com/signup", "https://vercel.com/signup")}.`,
+  "Clique <strong>Continue with GitHub</strong>, puis <strong>Authorize Vercel</strong>.",
+  "Choisis le plan <strong>Hobby</strong> (gratuit) pour l'instant. Renseigne un nom si demandé, clique <strong>Continue</strong>.",
+])}
+${verif(`Tu arrives sur le tableau de bord Vercel (vide pour l'instant, c'est normal). Compte prêt ✅.`)}
+${warn(
+  "Le plan <strong>gratuit (Hobby)</strong> de Vercel est prévu pour un usage <strong>non-commercial</strong> : parfait pour <em>tester et faire une démo</em>. Pour une utilisation pro réelle, il faudra le plan <strong>Pro</strong> — décision à prendre avec ton employeur (page « Coûts »)."
+)}
+${check("vercel-ok", "Mon compte Vercel est créé")}
+${bro(
+  "Voilà, tu as tes 3 clés d'entrée. Garde bien tous les mots de passe au même endroit (le trousseau de ton navigateur fait très bien le job). Si une étape coince — un bouton qui ne porte pas exactement le même nom, par exemple —, ne panique pas : les sites changent un peu leurs libellés, mais l'intention reste la même. Au moindre doute, demande-moi."
+)}
+`,
+  },
+
+  /* ===== 04 — RÉCUPÉRER LE TRAVAIL ===== */
+  {
+    slug: "04-recuperer-le-travail",
+    tag: "Reprise",
+    title: "Récupérer le travail déjà fait",
+    sub: "Depuis le téléphone/navigateur OU depuis ton PC — pas à pas",
+    body: `
+<p>Une partie est <strong>déjà faite</strong> : l'analyse du besoin (Étape 1) et le schéma de base de données (Étape 2). Tout est rangé dans un <strong>dépôt Git</strong> sur GitHub.</p>
+${callout(
+  "<strong>Dépôt (repo).</strong> Un dossier de projet avec tout son historique, hébergé sur GitHub. Le nôtre : <code>matthieubonamy/gestion_formation</code>, branche <code>claude/training-management-pwa-5ibmi2</code>."
+)}
+
+<h2>Chemin A — Sans rien installer (téléphone ou PC)</h2>
+${ol([
+  "Crée ton compte GitHub (page précédente).",
+  "Envoie ton <strong>nom d'utilisateur GitHub</strong> à Matthieu et demande-lui de t'ajouter au dépôt.",
+  `Matthieu, lui, va sur ${link("https://github.com/matthieubonamy/gestion_formation/settings/access", "Settings → Collaborators")} du dépôt, clique <strong>Add people</strong>, colle ton nom d'utilisateur, et t'invite.`,
+  "Tu reçois un email d'invitation : clique <strong>Accept invitation</strong>.",
+  "Tu peux maintenant <strong>ouvrir le dépôt dans le navigateur</strong> et lire les fichiers (dossiers <code>docs/</code> et <code>db/</code>).",
+])}
+${verif(`Tu vois la liste des fichiers du projet sur github.com → tu as bien accès ✅.`)}
+${callout(
+  "<strong>Coder depuis le navigateur ?</strong> Le projet a été démarré avec <strong>Claude Code sur le web</strong> (" +
+    link("https://code.claude.com", "code.claude.com") +
+    "). Tu peux y ouvrir le même dépôt et <em>demander à l'assistant</em> de continuer une étape, même depuis un téléphone. Autre option : <strong>GitHub Codespaces</strong> (un PC de dev dans le navigateur, gratuit ~60 h/mois)."
+)}
+${warn(
+  "Sur téléphone, on lit et on pilote l'assistant, mais taper du code à la main est inconfortable. Pour coder vraiment, passe au Chemin B."
+)}
+${check("repo-access", "J'ai accès au dépôt (via une invitation de Matthieu)")}
+
+<h2>Chemin B — Sur ton PC Windows (pour coder)</h2>
+${ol([
+  "Ouvre l'Invite de commandes (menu Démarrer → tape <code>cmd</code>).",
+  "Place-toi dans ton dossier Documents :",
+])}
+${code("cd Documents")}
+${ol(["Télécharge une copie du projet (= « cloner ») :"])}
+${code("git clone https://github.com/matthieubonamy/gestion_formation.git")}
+${ol(["Entre dans le dossier et place-toi sur la branche de travail :"])}
+${code("cd gestion_formation\ngit checkout claude/training-management-pwa-5ibmi2")}
+${verif("Tape <code>dir</code> : tu dois voir les dossiers <code>docs</code> et <code>db</code>. Tu as bien le projet ✅.")}
+${callout("Au premier <code>git clone</code>, GitHub peut te demander de te connecter : une fenêtre s'ouvre, clique « Sign in with your browser » et connecte-toi avec ton compte GitHub.")}
+${check("repo-cloned", "J'ai cloné le projet sur mon PC et je suis sur la bonne branche")}
+
+<h3>Variante : tout recréer de zéro (pour apprendre)</h3>
+<p>Si tu préfères <strong>tout reconstruire toi-même</strong>, tu n'as pas besoin de cloner : suis simplement les pages des Étapes 1 à 15 dans l'ordre, en repartant d'un dossier vide. Les fichiers déjà faits (<code>docs/</code> et <code>db/schema.sql</code>) te serviront de <strong>modèle</strong>.</p>
+${bro(
+  "Pour l'accès au dépôt, un simple message à Matthieu suffit — il a les droits et m'a dit de te dire de ne pas hésiter. Le plus dur, c'est souvent juste d'oser demander. Tu peux. 🙂"
+)}
+`,
+  },
+
+  /* ===== 05 — LES DÉCISIONS ===== */
   {
     slug: "05-les-decisions",
     tag: "Décisions",
     title: "Les décisions à prendre",
-    sub: "Chaque choix, toutes les options, et ma recommandation",
+    sub: "Chaque choix, toutes les options, ma recommandation",
     body: `
-<p>Voici les vrais choix du projet. Pour chacun : les options et ce que je recommande pour <strong>un débutant qui veut un résultat simple et pas cher</strong>.</p>
+<p>Voici les vrais choix du projet. Pour chacun : les options et ma reco pour <strong>un débutant qui veut du simple et du pas cher</strong>.</p>
 
 ${decision(
   "Où héberger l'application ?",
-  "C'est l'endroit qui rend ton site accessible sur Internet.",
+  "L'endroit qui rend ton site accessible sur Internet.",
   [
-    { name: "Vercel", body: "Le plus simple avec Next.js, déploiement en 1 clic. Gratuit pour tester, Pro ~20 $/mois pour un usage pro." },
-    { name: "Netlify", body: "Très proche de Vercel. Gratuit aussi, ~19 $/mois en pro. Bon aussi." },
-    { name: "Cloudflare Pages", body: "Gratuit même pour un usage commercial, très généreux. Un peu plus technique à configurer avec Next.js." },
+    { name: "Vercel", body: "Le plus simple avec Next.js, déploiement en 1 clic. Gratuit pour tester, ~20 $/mois en pro." },
+    { name: "Netlify", body: "Très proche de Vercel. Gratuit aussi, ~19 $/mois en pro." },
+    { name: "Cloudflare Pages", body: "Gratuit même pour un usage commercial, très généreux. Un peu plus technique à configurer." },
   ],
-  "<strong>Vercel</strong> pour démarrer (le plus fluide avec Next.js). Si le budget devient un sujet, <strong>Cloudflare Pages</strong> est l'alternative gratuite la plus solide."
+  "<strong>Vercel</strong> pour démarrer. Si le budget devient un sujet, <strong>Cloudflare Pages</strong> est l'alternative gratuite la plus solide."
 )}
-
 ${decision(
   "Base de données + authentification",
   "Où ranger les données et gérer les mots de passe.",
   [
-    { name: "Supabase", body: "Base PostgreSQL standard + auth + stockage. Gratuit au début. Données portables (PostgreSQL = standard)." },
-    { name: "Firebase (Google)", body: "Très populaire aussi, mais base « NoSQL » moins adaptée à nos tableaux reliés, et plus difficile à exporter." },
+    { name: "Supabase", body: "Base PostgreSQL standard + auth + stockage. Gratuit au début. Données portables." },
+    { name: "Firebase (Google)", body: "Populaire, mais base « NoSQL » moins adaptée à nos tableaux reliés, et plus dure à exporter." },
   ],
-  "<strong>Supabase</strong> : mieux adapté à des données reliées (personnes, formations, inscriptions) et tu n'es jamais enfermé."
+  "<strong>Supabase</strong> : mieux adapté à des données reliées (personnes, formations, inscriptions)."
 )}
-
 ${decision(
   "Acheter un nom de domaine ?",
-  "L'adresse de ton site (ex. mon-organisme-formation.fr).",
+  "L'adresse de ton site (ex. mon-organisme.fr).",
   [
-    { name: "Pas tout de suite", body: "Vercel te donne une adresse gratuite en .vercel.app. Parfait pour tester." },
-    { name: "Acheter un domaine", body: "Plus pro et mémorisable. ~5-12 €/an pour un .fr, ~8-15 €/an pour un .com (OVH, Gandi, Infomaniak)." },
+    { name: "Pas tout de suite", body: "Vercel te donne une adresse gratuite en .vercel.app. Parfait pour tester et démontrer." },
+    { name: "Acheter un domaine", body: "Plus pro. ~5-12 €/an pour un .fr, ~8-15 €/an pour un .com." },
   ],
-  "Commence avec l'adresse gratuite. Achète un <strong>.fr</strong> (pas cher et stable) quand tu présentes l'app à de vrais clients."
+  "Commence avec l'adresse gratuite. L'achat d'un domaine est une dépense → à valider avec ton employeur."
 )}
-
 ${decision(
-  "Envoyer des emails (relances) ?",
+  "Envoyer des emails de relance ?",
   "Pour envoyer automatiquement des emails depuis l'app.",
   [
-    { name: "Aucun au début", body: "Tu relances toi-même par téléphone/email perso. L'app te rappelle juste QUI relancer. Zéro coût, zéro complexité." },
-    { name: "Resend", body: "Service d'envoi simple. Gratuit jusqu'à 3 000 emails/mois (100/jour), puis à partir de ~20 $/mois." },
+    { name: "Aucun au début", body: "L'app te rappelle QUI relancer ; tu relances toi-même. Zéro coût, zéro complexité." },
+    { name: "Resend", body: "Service d'envoi simple. Gratuit jusqu'à 3 000 emails/mois, puis ~20 $/mois." },
   ],
-  "<strong>Aucun au début.</strong> On ajoute Resend seulement quand tu veux automatiser les relances (après le MVP)."
+  "<strong>Aucun au début.</strong> On ajoutera Resend plus tard si besoin."
 )}
-
 ${decision(
   "Surveiller les erreurs (monitoring) ?",
   "Être prévenu quand l'app plante.",
   [
-    { name: "Logs de base", body: "Vercel garde déjà les messages d'erreur. Suffisant pour démarrer. Gratuit." },
-    { name: "Sentry", body: "Outil dédié : alertes détaillées. Gratuit jusqu'à 5 000 erreurs/mois, puis ~26 $/mois." },
+    { name: "Logs Vercel", body: "Vercel garde déjà les messages d'erreur. Suffisant pour démarrer. Gratuit." },
+    { name: "Sentry", body: "Alertes détaillées. Gratuit jusqu'à 5 000 erreurs/mois, puis ~26 $/mois." },
   ],
-  "<strong>Logs Vercel</strong> au début. Sentry plus tard si l'app devient critique."
+  "<strong>Logs Vercel</strong> au début ; Sentry plus tard si l'app devient critique."
 )}
-
-${decision(
-  "Un seul admin ou plusieurs ?",
-  "Qui peut se connecter à l'application.",
-  [
-    { name: "Un seul (toi)", body: "Le plus simple. Un compte admin créé à la main dans Supabase." },
-    { name: "Plusieurs admins", body: "Toi + ton associé. Supabase gère ça sans surcoût (jusqu'à 50 000 utilisateurs gratuits)." },
-  ],
-  "Commence à <strong>un</strong>, ajoute ton associé quand l'app marche. C'est gratuit et rapide à faire."
-)}
-
 ${bro(
-  "Ces décisions, tu n'as pas à les porter seul. Mes recommandations sont faites pour un débutant qui veut du simple et du pas cher. Pour les choix purement <strong>techniques</strong>, demande à <strong>Matthieu</strong> si tu hésites — c'est son domaine et il m'a justement demandé de te les présenter clairement. En revanche, dès qu'un choix coûte de l'argent (hébergement payant, nom de domaine…), ce n'est ni à toi ni à Matthieu de trancher : ça se valide avec <strong>ton employeur</strong>. Tu peux très bien tout préparer en version gratuite et garder ces décisions « budget » pour plus tard."
+  "Pour les choix <strong>techniques</strong>, demande à <strong>Matthieu</strong> si tu hésites — c'est son domaine. En revanche, dès qu'un choix <strong>coûte de l'argent</strong> (hébergement payant, domaine…), ce n'est ni à toi ni à Matthieu de trancher : ça se valide avec <strong>ton employeur</strong>. Tu peux tout préparer en version gratuite et garder ces décisions « budget » pour plus tard."
 )}
 ${check("decisions-noted", "J'ai noté mes décisions (je peux y revenir plus tard)")}
 `,
   },
 
-  /* ---------------------------------------------------------- */
+  /* ===== 06 — LES COÛTS ===== */
   {
     slug: "06-les-couts",
     tag: "Budget",
     title: "Combien ça coûte ? (court / moyen / long terme)",
-    sub: "Selon le nombre d'utilisateurs et de contacts — tarifs vérifiés en juin 2026",
+    sub: "Tarifs vérifiés en juin 2026 — pour ta discussion avec l'employeur",
     body: `
-<p>Bonne nouvelle : <strong>pour démarrer et tester, c'est 0 €.</strong> On ne paie que quand l'activité grandit. Voici 3 scénarios concrets.</p>
-
-<h3>Les prix de référence (juin 2026)</h3>
+<p>Pour <strong>démarrer et tester, c'est 0 €.</strong> On ne paie que quand l'activité grandit. Voici les chiffres concrets à présenter à ton employeur.</p>
+<h3>Prix de référence (juin 2026)</h3>
 ${table(
   ["Service", "Gratuit", "Payant", "Ce qui déclenche le payant"],
   [
-    ["Supabase", "0 € (500 Mo, 50 000 utilisateurs)", "≈ 25 $/mois (Pro)", "Usage continu sans pause + plus de 500 Mo"],
-    ["Vercel", "0 € (test, non-commercial)", "≈ 20 $/mois (Pro)", "Usage professionnel / commercial"],
+    ["Supabase", "0 € (500 Mo, 50 000 utilisateurs)", "≈ 25 $/mois", "Usage continu sans pause + plus de 500 Mo"],
+    ["Vercel", "0 € (test, non-commercial)", "≈ 20 $/mois", "Usage professionnel / commercial"],
     ["Nom de domaine", "0 € (.vercel.app)", "5-15 €/an", "Vouloir une adresse à ton nom"],
     ["Resend (emails)", "0 € (3 000/mois)", "≈ 20 $/mois", "Automatiser beaucoup de relances"],
-    ["Sentry (erreurs)", "0 € (5 000 erreurs/mois)", "≈ 26 $/mois", "Surveillance avancée"],
+    ["Sentry (erreurs)", "0 € (5 000/mois)", "≈ 26 $/mois", "Surveillance avancée"],
   ]
 )}
-
-<h3>Scénario 1 — Démarrage (court terme, 0-6 mois)</h3>
-<p><em>1 à 2 admins, moins de 500 contacts, on teste et on présente.</em></p>
-${table(
-  ["Poste", "Coût"],
-  [
-    ["Supabase (gratuit)", "0 €"],
-    ["Vercel (gratuit, test)", "0 €"],
-    ["Domaine", "0 € (ou ~10 €/an si tu en veux un)"],
-    ["<strong>Total</strong>", "<strong>≈ 0 € / mois</strong>"],
-  ]
-)}
-
-<h3>Scénario 2 — Croissance (moyen terme, 6-18 mois)</h3>
-<p><em>1 à 3 admins, ~2 000 contacts, usage quotidien réel, premiers vrais clients.</em></p>
-${table(
-  ["Poste", "Coût/mois"],
-  [
-    ["Supabase Pro (app toujours active, sauvegardes)", "≈ 25 $ (≈ 23 €)"],
-    ["Vercel Pro (usage pro)", "≈ 20 $ (≈ 18 €)"],
-    ["Domaine", "≈ 1 €/mois (lissé)"],
-    ["<strong>Total</strong>", "<strong>≈ 42 € / mois</strong>"],
-  ]
-)}
-${callout(
-  "À ce stade, on paie surtout pour la <strong>fiabilité</strong> : l'app ne se met plus en pause, les sauvegardes tournent, et l'usage commercial est en règle."
-)}
-
-<h3>Scénario 3 — Établi (long terme, 18 mois +)</h3>
-<p><em>Plusieurs admins, 10 000+ contacts, usage intensif, peut-être emails automatiques.</em></p>
-${table(
-  ["Poste", "Coût/mois"],
-  [
-    ["Supabase Pro + un peu d'usage en plus", "≈ 25-40 $"],
-    ["Vercel Pro", "≈ 20 $"],
-    ["Resend (relances auto)", "≈ 20 $"],
-    ["Sentry (surveillance)", "≈ 26 $ (optionnel)"],
-    ["Domaine", "≈ 1 €"],
-    ["<strong>Total</strong>", "<strong>≈ 75-110 € / mois</strong>"],
-  ]
-)}
-
+<h3>Scénario 1 — Démarrage (0-6 mois) : 1-2 admins, &lt; 500 contacts</h3>
+${table(["Poste", "Coût"], [["Supabase + Vercel (gratuits)", "0 €"], ["Domaine (optionnel)", "0 à ~10 €/an"], ["<strong>Total</strong>", "<strong>≈ 0 € / mois</strong>"]])}
+<h3>Scénario 2 — Croissance (6-18 mois) : ~2 000 contacts, usage quotidien</h3>
+${table(["Poste", "Coût/mois"], [["Supabase Pro", "≈ 25 $ (≈ 23 €)"], ["Vercel Pro", "≈ 20 $ (≈ 18 €)"], ["Domaine", "≈ 1 €"], ["<strong>Total</strong>", "<strong>≈ 42 € / mois</strong>"]])}
+<h3>Scénario 3 — Établi (18 mois +) : 10 000+ contacts, usage intensif</h3>
+${table(["Poste", "Coût/mois"], [["Supabase Pro (+ usage)", "≈ 25-40 $"], ["Vercel Pro", "≈ 20 $"], ["Resend (relances auto)", "≈ 20 $"], ["Sentry (optionnel)", "≈ 26 $"], ["<strong>Total</strong>", "<strong>≈ 75-110 € / mois</strong>"]])}
 ${warn(
-  "Ces montants sont des <strong>ordres de grandeur</strong> (tarifs de juin 2026, dollars ≈ euros). Le nombre de contacts n'est pas le facteur principal : Supabase compte surtout la <strong>place utilisée</strong> et l'<strong>activité</strong>, pas le nombre de lignes. 10 000 personnes tiennent largement dans le plan Pro."
+  "Ordres de grandeur (tarifs juin 2026, dollar ≈ euro). Le nombre de contacts n'est pas le facteur principal : Supabase compte surtout la <strong>place</strong> et l'<strong>activité</strong>. 10 000 personnes tiennent largement dans le plan Pro."
 )}
-<h3>Comment payer le moins possible longtemps</h3>
-<ul>
-<li>Reste sur le <strong>gratuit</strong> tant que tu testes.</li>
-<li>Passe Vercel/Supabase en payant <strong>seulement</strong> au lancement réel auprès de clients.</li>
-<li>Si le budget est serré, héberge sur <strong>Cloudflare Pages</strong> (gratuit même en pro) : ça enlève la ligne Vercel.</li>
-<li>Garde toujours un <strong>export CSV</strong> récent : c'est ta sauvegarde gratuite et ta liberté de partir ailleurs.</li>
-</ul>
 ${bro(
-  "Sur l'argent, soyons clairs : ce n'est pas à toi de sortir la carte bleue, et Matthieu n'est pas concerné non plus. <strong>Le financement, c'est à voir avec ton employeur.</strong> Et c'est là que tu as une super carte à jouer : tant que tu testes, ça coûte 0 €, donc tu peux d'abord <strong>construire une vraie démo qui marche</strong>… puis la montrer. Quand ton employeur verra l'outil tourner — les relances qui ne s'oublient plus, le suivi des paiements, l'export en un clic — la question ne sera plus « est-ce qu'on paie 40 € par mois ? » mais « pourquoi on ne l'avait pas avant ? ». La puissance de ce que tu auras créé vaudra largement ce petit budget."
+  "Sur l'argent, soyons clairs : ce n'est pas à toi de sortir la carte bleue, et Matthieu n'est pas concerné. <strong>Le financement, c'est à voir avec ton employeur.</strong> Et tu as une super carte à jouer : tant que tu testes, c'est 0 € — donc tu peux d'abord <strong>construire une vraie démo qui marche</strong>, puis la montrer. Quand ton employeur verra l'outil tourner (relances qui ne s'oublient plus, suivi des paiements, export en un clic), la question ne sera plus « est-ce qu'on paie 40 €/mois ? » mais « pourquoi on ne l'avait pas avant ? ». La puissance de ce que tu auras créé vaudra largement ce petit budget."
 )}
 ${check("costs-understood", "J'ai compris : je teste gratuitement, je montre, et le financement se voit avec l'employeur")}
 `,
   },
 
-  /* ------------ LES 15 ÉTAPES DU PROJET ------------ */
+  /* ===== LES 15 ÉTAPES ===== */
   step(1, "analyse-besoin", "Analyse du besoin", "Déjà fait ✅ — à comprendre",
-`<p><span class="pill green">Déjà fait</span> Cette étape consiste à <strong>écrire clairement</strong> qui utilise l'app, ce qu'elle fait, et ce qu'on ne fait pas. C'est dans <code>docs/etape-1-analyse.pdf</code>.</p>
-<h3>Ce que tu dois en retenir</h3>
-<ul>
-<li><strong>Un seul utilisateur</strong> : l'admin (le formateur).</li>
-<li><strong>Données</strong> : personnes, formations, inscriptions, paiements, relances, notes.</li>
-<li><strong>Écrans</strong> : connexion, tableau de bord, personnes, formations, inscriptions, relances, export.</li>
-</ul>
-${warn("Ne pas coder avant d'avoir validé ce « quoi ». Sauter cette étape = construire la mauvaise app.")}
+`<p><span class="pill green">Déjà fait</span> Cette étape consiste à écrire clairement qui utilise l'app, ce qu'elle fait et ne fait pas. C'est dans <code>docs/etape-1-analyse.pdf</code>.</p>
+<h3>Pour la lire</h3>
+${ol([
+  "Sur GitHub, ouvre le dépôt → dossier <code>docs</code> → clique <code>etape-1-analyse.pdf</code> → <strong>View raw</strong> pour le télécharger.",
+  "Ou sur ton PC, ouvre le fichier dans <code>Documents/gestion_formation/docs/</code>.",
+])}
+<h3>À retenir</h3>
+<ul><li><strong>Un seul utilisateur</strong> : l'admin (toi).</li><li><strong>Données</strong> : personnes, formations, inscriptions, paiements, relances, notes.</li><li><strong>Écrans</strong> : connexion, tableau de bord, personnes, formations, inscriptions, relances, export.</li></ul>
+${warn("Ne pas coder avant d'avoir validé ce « quoi ». Sauter ça = construire la mauvaise app.")}
 ${check("e1", "J'ai lu l'analyse du besoin et je suis d'accord avec le périmètre")}`),
 
-  step(2, "schema-bdd", "Schéma de base de données", "Déjà fait ✅ — à appliquer",
-`<p><span class="pill green">Déjà fait</span> Le plan des 12 tables est écrit dans <code>db/schema.sql</code> (voir aussi <code>docs/etape-2-schema-bdd.pdf</code>).</p>
-<h3>L'appliquer dans Supabase (quand tu veux démarrer pour de vrai)</h3>
-${check("e2a", "Ouvrir ton projet Supabase → menu « SQL Editor »")}
-${check("e2b", "Ouvrir le fichier db/schema.sql, copier tout son contenu")}
-${check("e2c", "Le coller dans le SQL Editor et cliquer « Run »")}
-${callout("Si le script s'exécute <strong>sans erreur rouge</strong>, tes 12 tables sont créées. Tu peux les voir dans « Table Editor ».")}
-${warn("Modifier le schéma APRÈS avoir mis de vraies données est plus délicat. Vérifie qu'il ne te manque aucun champ (financeur, n° de dossier, adresse de facturation) AVANT d'appliquer.")}
-${check("e2d", "Le schéma est appliqué et je vois mes tables dans Supabase")}`),
+  step(2, "schema-bdd", "Schéma de base de données", "Déjà fait ✅ — à APPLIQUER dans Supabase (clic par clic)",
+`<p><span class="pill green">Déjà fait</span> Le plan des 12 tables est écrit dans <code>db/schema.sql</code>. Voici comment le <strong>créer pour de vrai</strong> dans ta base Supabase.</p>
+<h3>Étape par étape</h3>
+${ol([
+  "Récupère le contenu du fichier <code>db/schema.sql</code> : sur GitHub, ouvre le dépôt → dossier <code>db</code> → clique <code>schema.sql</code> → clique le bouton <strong>« Raw »</strong> → sélectionne tout (Ctrl+A) → copie (Ctrl+C).",
+  `Va sur ${link("https://supabase.com/dashboard", "https://supabase.com/dashboard")} et ouvre ton projet <code>gestion-formation</code>.`,
+  "Dans le menu de gauche, clique l'icône <strong>« SQL Editor »</strong> (un symbole &lt;/&gt;).",
+  "Clique <strong>« + New query »</strong> (ou « New snippet »).",
+  "Clique dans la grande zone de texte et <strong>colle</strong> (Ctrl+V) tout le contenu du schéma.",
+  "En bas à droite, clique le bouton vert <strong>« Run »</strong> (ou appuie Ctrl+Entrée).",
+])}
+${verif("Un message vert « Success. No rows returned » apparaît en bas → tes tables sont créées ✅.")}
+${ol([
+  "Pour les voir : menu de gauche → <strong>« Table Editor »</strong>. Tu dois voir la liste : <code>people</code>, <code>courses</code>, <code>enrollments</code>, etc.",
+])}
+${warn("Si un message rouge apparaît, lis-le : souvent une table existe déjà. Solution simple : recopie le message d'erreur à Claude Code, il te dit quoi faire. Ne supprime rien au hasard.")}
+${callout("Vérifie qu'il ne te manque aucun champ utile à ton métier (financeur, n° de dossier, adresse de facturation) AVANT de mettre de vraies données. Modifier après est plus délicat.")}
+${check("e2", "Le schéma est appliqué : je vois mes 12 tables dans le Table Editor de Supabase")}`),
 
-  step(3, "creation-projet", "Création du projet", "Le squelette de l'application",
-`<p>On crée l'ossature de l'app Next.js et on la relie à Supabase.</p>
-<h3>Marche à suivre</h3>
-${check("e3a", "Dans le dossier du projet, créer l'app Next.js")}
-${code("npx create-next-app@latest . --typescript --eslint --app --tailwind --src-dir")}
-<p>Réponds « Yes » aux questions par défaut. (Le point « . » = créer dans le dossier actuel.)</p>
-${check("e3b", "Installer la brique Supabase")}
-${code("npm install @supabase/supabase-js @supabase/ssr")}
-${check("e3c", "Créer un fichier .env.local avec tes clés Supabase (Project Settings → API)")}
-${code('NEXT_PUBLIC_SUPABASE_URL=ton-url-supabase\nNEXT_PUBLIC_SUPABASE_ANON_KEY=ta-cle-anon')}
-${warn("Le fichier .env.local contient des clés : il ne doit JAMAIS partir sur GitHub. Vérifie qu'il est listé dans .gitignore.")}
-${check("e3d", "Lancer l'app en local pour vérifier")}
+  step(3, "creation-projet", "Création du projet", "Le squelette de l'app (sur PC)",
+`<p>On crée l'ossature Next.js et on la relie à Supabase. <strong>Sur ton PC</strong>, dans le dossier du projet.</p>
+<h3>1) Créer l'application Next.js</h3>
+${ol(["Ouvre VS Code → Fichier → <strong>Ouvrir le dossier</strong> → choisis <code>Documents/gestion_formation</code>.", "Ouvre le terminal intégré : menu <strong>Terminal → Nouveau terminal</strong>.", "Tape la commande :"])}
+${code("npx create-next-app@latest . --typescript --eslint --app --tailwind --src-dir --import-alias \"@/*\"")}
+<p>S'il demande « Ok to proceed? », tape <code>y</code> puis Entrée. Réponds <strong>No</strong> à « Turbopack » si tu hésites (peu importe).</p>
+${verif("Tape la commande suivante : une page Next.js doit s'ouvrir sur http://localhost:3000.")}
 ${code("npm run dev")}
-<p>Ouvre <code>http://localhost:3000</code> dans le navigateur : la page d'accueil de Next.js s'affiche ✅.</p>
-${check("e3e", "L'app démarre en local sur localhost:3000")}`),
+<p>Ouvre ${link("http://localhost:3000", "http://localhost:3000")} dans ton navigateur. Tu vois la page d'accueil Next.js ✅. (Pour arrêter : reviens au terminal et fais Ctrl+C.)</p>
+${check("e3a", "L'app démarre en local sur localhost:3000")}
+<h3>2) Brancher Supabase</h3>
+${ol(["Dans le terminal, installe la brique Supabase :"])}
+${code("npm install @supabase/supabase-js @supabase/ssr")}
+${ol([
+  "Récupère tes 2 clés Supabase : dashboard Supabase → ⚙️ <strong>Project Settings</strong> → <strong>API</strong>. Note <strong>Project URL</strong> et la clé <strong>anon public</strong>.",
+  "Dans VS Code, crée un fichier nommé exactement <code>.env.local</code> à la racine du projet (clic droit dans l'explorateur → Nouveau fichier).",
+  "Colle dedans (remplace par TES valeurs) :",
+])}
+${code("NEXT_PUBLIC_SUPABASE_URL=colle-ici-ton-Project-URL\nNEXT_PUBLIC_SUPABASE_ANON_KEY=colle-ici-ta-cle-anon-public")}
+${warn("Le fichier <code>.env.local</code> contient des clés : il ne doit JAMAIS partir sur GitHub. Vérifie qu'il est listé dans le fichier <code>.gitignore</code> (il y est par défaut avec Next.js).")}
+${check("e3b", "Supabase est installé et mes clés sont dans .env.local")}
+${bro("Cette étape « technique » est typiquement celle où on appelle un pote qui code. Si tu bloques sur une commande, copie-colle l'erreur à Claude Code, ou envoie un message à Matthieu. C'est exactement pour ça qu'on est là.")}`),
 
   step(4, "authentification", "Authentification (connexion admin)", "Le portier de l'app",
-`<p>On met une page de connexion et on protège toutes les autres pages.</p>
-<h3>Comment ça marche (en simple)</h3>
-<ul>
-<li>L'admin tape email + mot de passe sur une page <code>/login</code>.</li>
-<li>Supabase vérifie, et donne un « jeton » (badge d'entrée) au navigateur.</li>
-<li>Chaque page privée vérifie le badge ; sans badge → redirection vers <code>/login</code>.</li>
-</ul>
-${check("e4a", "Créer le compte admin dans Supabase → Authentication → Add user")}
-${check("e4b", "Créer la page /login (formulaire email + mot de passe)")}
-${check("e4c", "Ajouter un « middleware » qui protège les pages privées")}
-${callout("Un <strong>middleware</strong> est un videur placé à l'entrée : il vérifie le badge avant de laisser voir la page.")}
-${check("e4d", "Tester : sans connexion, /dashboard renvoie vers /login ; avec connexion, on entre")}
+`<p>On met une page de connexion et on protège les autres pages.</p>
+<h3>1) Créer ton compte admin dans Supabase (clic par clic)</h3>
+${ol([
+  "Dashboard Supabase → menu de gauche <strong>« Authentication »</strong> → onglet <strong>« Users »</strong>.",
+  "Clique <strong>« Add user »</strong> → <strong>« Create new user »</strong>.",
+  "Saisis ton <strong>email</strong> et un <strong>mot de passe</strong> (note-le), coche « Auto Confirm User », clique <strong>Create user</strong>.",
+])}
+${verif("Ton email apparaît dans la liste des utilisateurs ✅.")}
+${check("e4a", "Mon compte admin existe dans Supabase")}
+<h3>2) Créer la page de connexion + la protection</h3>
+<p>Là, c'est du code. Le plus simple et fiable pour un débutant : demander à Claude Code de l'écrire, puis vérifier.</p>
+${promptClaude("Dans ce projet Next.js (App Router) avec @supabase/ssr déjà installé, crée une page de connexion sur /login (email + mot de passe) qui utilise Supabase Auth, et un middleware qui protège toutes les pages sauf /login en redirigeant les visiteurs non connectés vers /login. Ajoute aussi un bouton de déconnexion. Explique-moi simplement ce que tu as créé.")}
+${callout("Un <strong>middleware</strong> est un videur à l'entrée : il vérifie le badge avant de laisser voir la page.")}
+${verif("Lance <code>npm run dev</code>. Va sur http://localhost:3000/dashboard SANS être connecté → tu es renvoyé vers /login. Connecte-toi → tu entres. ✅")}
 ${warn("Ne jamais écrire un mot de passe en clair dans le code. C'est Supabase qui les stocke, chiffrés.")}
-${bro(
-  "L'authentification, ça impressionne sur le papier, mais Supabase fait 90 % du boulot à ta place. Si tu coinces ici, c'est NORMAL, et c'est exactement le moment de m'appeler (via Claude Code) ou de sonner Matthieu. Rappelle-toi : il m'a demandé de t'aider justement pour que les étapes « techniques » ne te bloquent pas."
-)}`),
+${check("e4b", "Sans connexion je suis bloqué ; avec connexion j'entre")}
+${bro("L'authentification impressionne sur le papier, mais Supabase fait 90 % du boulot. Si tu coinces, c'est NORMAL — appelle-moi ou sonne Matthieu. Il m'a demandé de t'aider justement pour ces étapes « techniques ».")}`),
 
   step(5, "module-personnes", "Module Personnes", "Le cœur du CRM",
 `<p>Liste, ajout, modification, suppression, recherche et filtres des personnes.</p>
-<h3>Écrans à créer</h3>
-${table(["Page", "Rôle"], [
-  ["/people", "Liste + barre de recherche + filtre par statut"],
-  ["/people/new", "Formulaire d'ajout"],
-  ["/people/[id]", "Détail + modification + suppression"],
-])}
-<h3>Champs du formulaire (minimum)</h3>
-<p>Prénom, nom, email, téléphone, statut (prospect/inscrit/client/archive), source, notes.</p>
-${check("e5a", "Page liste des personnes avec recherche")}
-${check("e5b", "Ajout d'une personne (et elle apparaît dans la liste)")}
-${check("e5c", "Modification et suppression")}
-${callout("<strong>Validation</strong> : refuse d'enregistrer si le prénom ou le nom est vide, et affiche un message clair (ex. « Le nom est obligatoire »).")}
-${check("e5d", "Je peux créer, chercher, modifier et supprimer une personne")}`),
+<h3>Pages à créer</h3>
+${table(["Adresse", "Rôle"], [["/people", "Liste + recherche + filtre par statut"], ["/people/new", "Formulaire d'ajout"], ["/people/[id]", "Détail + modification + suppression"]])}
+<h3>La façon simple de les créer</h3>
+${promptClaude("Crée le module Personnes pour ce projet Next.js + Supabase. Table 'people' (champs : first_name, last_name, email, phone, status [prospect|inscrit|client|archive], source, notes, created_at). Pages : /people (liste avec barre de recherche par nom et filtre par statut), /people/new (formulaire d'ajout), /people/[id] (détail + modification + suppression). Refuse l'enregistrement si first_name ou last_name est vide, avec un message clair. Style simple et responsive (mobile). Explique-moi comment tester.")}
+${verif("Sur /people : j'ajoute « Sophie Martin », elle apparaît dans la liste ; je la cherche, je la modifie, je la supprime. ✅")}
+${callout("<strong>Validation</strong> : refuse d'enregistrer si le prénom ou le nom est vide, et affiche un message du type « Le nom est obligatoire ».")}
+${check("e5", "Je peux créer, chercher, modifier et supprimer une personne")}`),
 
   step(6, "module-formations", "Module Formations", "Le catalogue",
 `<p>Liste, ajout, modification, suppression des formations.</p>
 <h3>Champs (minimum)</h3>
 <p>Nom, description, type (présentiel/distanciel/mixte), prix, statut, date de début, date de fin.</p>
-${check("e6a", "Page /courses : liste des formations")}
-${check("e6b", "Ajout / modification / suppression")}
-${callout("Réutilise la même structure de pages que pour les personnes : tu vas vite, c'est le même schéma (liste, formulaire, détail).")}
-${check("e6c", "Je peux gérer mes formations de bout en bout")}`),
+${promptClaude("Crée le module Formations (table 'courses' : name, description, type, price, status, start_date, end_date) sur le même modèle que mon module Personnes : page liste /courses, ajout, modification, suppression. Style cohérent avec le reste. Explique comment tester.")}
+${verif("Sur /courses : je crée « Initiation Excel » à 450 €, je la modifie, je la supprime. ✅")}
+${check("e6", "Je gère mes formations de bout en bout")}`),
 
   step(7, "module-inscriptions", "Module Inscriptions", "Relier personne et formation",
-`<p>On relie une personne à une formation et on suit son statut.</p>
-<h3>Champs de l'inscription</h3>
-<p>Personne, formation, statut d'inscription, statut de présence, statut de paiement, commentaire.</p>
-${check("e7a", "Sur la fiche d'une personne, bouton « Inscrire à une formation »")}
-${check("e7b", "Choisir la formation dans une liste déroulante")}
-${check("e7c", "Pouvoir changer les 3 statuts (inscription, présence, paiement)")}
-${warn("Empêche d'inscrire deux fois la même personne à la même formation (la base le bloque déjà ; affiche un message clair si ça arrive).")}
-${check("e7d", "Je peux inscrire une personne et suivre ses statuts")}`),
+`<p>On relie une personne à une formation et on suit ses statuts.</p>
+<h3>Champs</h3><p>Personne, formation, statut d'inscription, statut de présence, statut de paiement, commentaire.</p>
+${promptClaude("Sur la fiche d'une personne (/people/[id]), ajoute un bouton « Inscrire à une formation » qui crée une ligne dans la table 'enrollments' (person_id, course_id, enrollment_status, attendance_status, payment_status, comment). Affiche la liste des inscriptions de la personne avec des menus pour changer les 3 statuts. Empêche d'inscrire deux fois la même personne à la même formation, avec un message clair. Explique comment tester.")}
+${verif("Depuis Sophie, je l'inscris à Excel ; je change son paiement de « impayé » à « payé » ; réessayer de l'inscrire à Excel affiche un message d'erreur clair. ✅")}
+${check("e7", "Je peux inscrire une personne et suivre ses statuts")}`),
 
   step(8, "mini-crm", "Mini-CRM (relances)", "Ne plus oublier personne",
 `<p>On gère les relances : quand, comment, priorité, historique.</p>
-<h3>Champs d'une relance</h3>
-<p>Date de prochaine relance, priorité (basse/normale/haute), canal (email/téléphone/sms), statut commercial, compte-rendu.</p>
-<h3>Vues utiles</h3>
-${table(["Vue", "Contenu"], [
-  ["À relancer aujourd'hui", "Relances dont la date = aujourd'hui ou avant, non faites"],
-  ["En retard", "Relances dont la date est passée et non faites"],
-])}
-${check("e8a", "Ajouter une relance sur une personne")}
-${check("e8b", "Marquer une relance comme « faite » (et garder l'historique)")}
-${check("e8c", "Vue « à relancer aujourd'hui » et « en retard »")}
-${check("e8d", "Le CRM me dit qui relancer aujourd'hui")}`),
+<h3>Champs</h3><p>Date de prochaine relance, priorité, canal (email/téléphone/sms), statut commercial, compte-rendu.</p>
+${promptClaude("Crée un mini-CRM basé sur la table 'crm_followups' (person_id, next_followup_date, priority, channel, commercial_status, outcome, done). Permets d'ajouter une relance sur une personne, de la marquer « faite » (en gardant l'historique), et crée deux vues : /crm/today (relances dont la date est aujourd'hui ou avant, non faites) et /crm/late (relances en retard). Explique comment tester.")}
+${verif("J'ajoute une relance pour demain, elle n'apparaît pas dans « aujourd'hui » ; j'en ajoute une pour hier, elle apparaît dans « en retard ». ✅")}
+${check("e8", "Le CRM me dit qui relancer aujourd'hui et qui est en retard")}`),
 
   step(9, "tableau-de-bord", "Tableau de bord", "Les chiffres clés",
 `<p>Une page d'accueil qui résume tout.</p>
-<h3>Indicateurs à afficher</h3>
-<p>Nombre total de personnes, nombre de prospects, nombre d'inscrits, formations en cours, paiements en attente, relances du jour, relances en retard.</p>
-${check("e9a", "Page /dashboard avec les 7 indicateurs")}
-${callout("Chaque chiffre est une simple question à la base (ex. « combien de personnes ont le statut prospect ? »). On affiche le résultat dans une carte.")}
-${check("e9b", "Mon tableau de bord affiche les bons chiffres")}`),
+<h3>Indicateurs</h3><p>Total personnes, prospects, inscrits, formations en cours, paiements en attente, relances du jour, relances en retard.</p>
+${promptClaude("Crée une page /dashboard qui affiche 7 cartes chiffrées : nombre total de personnes, nombre de prospects, nombre d'inscrits, formations en cours, paiements en attente, relances du jour, relances en retard. Chaque carte fait une requête simple à Supabase. Design en grille, responsive. Explique comment tester.")}
+${verif("Sur /dashboard, les chiffres correspondent à ce que j'ai saisi (ex. 1 prospect si j'ai créé Sophie en prospect). ✅")}
+${check("e9", "Mon tableau de bord affiche les bons chiffres")}`),
 
   step(10, "export-csv", "Export CSV", "Récupérer ses données",
-`<p>Un bouton qui télécharge les données en fichier <strong>.csv</strong> (ouvrable dans Excel / Google Sheets).</p>
-<h3>Exports à proposer</h3>
-<p>Personnes, formations, inscriptions, relances.</p>
-${check("e10a", "Bouton « Exporter en CSV » sur chaque liste")}
-${check("e10b", "Le fichier téléchargé s'ouvre correctement dans Excel")}
-${callout("<strong>CSV</strong> = un tableau en texte simple, une ligne par fiche, les colonnes séparées par des virgules. C'est universel.")}
-${check("e10c", "Je peux récupérer toutes mes données en CSV")}`),
+`<p>Un bouton qui télécharge les données en fichier <strong>.csv</strong> (ouvrable dans Excel).</p>
+${promptClaude("Ajoute un bouton « Exporter en CSV » sur les listes Personnes, Formations, Inscriptions et Relances. Le bouton génère et télécharge un fichier .csv propre (une ligne par fiche, colonnes séparées par des virgules, en-têtes en français). Explique comment tester.")}
+${verif("Je clique « Exporter en CSV » sur /people, le fichier se télécharge et s'ouvre correctement dans Excel. ✅")}
+${callout("<strong>CSV</strong> = un tableau en texte simple, universel. C'est aussi ta <strong>sauvegarde gratuite</strong> : fais-en régulièrement.")}
+${check("e10", "Je peux récupérer toutes mes données en CSV")}`),
 
   step(11, "securite", "Sécurité minimale", "Protéger l'app et les données",
 `<p>Quelques règles simples mais essentielles.</p>
-${check("e11a", "Validation des formulaires (champs obligatoires, email valide)")}
-${check("e11b", "Toutes les pages admin protégées par la connexion")}
-${check("e11c", "Activer la « RLS » dans Supabase (chaque requête vérifie les droits)")}
-${callout("<strong>RLS (Row Level Security)</strong> = des règles dans la base qui décident qui a le droit de lire/écrire quelles lignes. C'est une 2e barrière en plus du portier de l'app.")}
-${check("e11d", "Aucun secret (clé, mot de passe) écrit en dur dans le code")}
-${check("e11e", "Messages d'erreur clairs (ex. « Email invalide »)")}
-${warn("Vérifie régulièrement l'onglet « Advisors » de Supabase : il signale les failles de configuration courantes.")}`),
+${ol([
+  "Validation des formulaires (champs obligatoires, email valide) — normalement déjà en place.",
+  "Toutes les pages admin protégées par la connexion (fait à l'étape 4).",
+  "Activer la « RLS » dans Supabase (voir ci-dessous).",
+])}
+${promptClaude("Active et configure la Row Level Security (RLS) sur toutes mes tables Supabase pour que seules les requêtes d'un utilisateur authentifié puissent lire/écrire les données. Donne-moi le SQL à exécuter dans le SQL Editor et explique-le simplement.")}
+${callout("<strong>RLS (Row Level Security)</strong> = des règles DANS la base qui décident qui a le droit de lire/écrire. C'est une 2e barrière en plus du portier de l'app.")}
+${verif("Dans Supabase → onglet « Advisors » (ou « Security »), il ne reste plus d'alerte « RLS disabled ». ✅")}
+${warn("Vérifie régulièrement l'onglet « Advisors » de Supabase : il signale les failles de configuration courantes.")}
+${check("e11", "La RLS est active et aucun secret n'est en dur dans le code")}`),
 
   step(12, "rgpd", "RGPD simple", "Respecter les données personnelles",
 `<p>Tu gères des données de personnes : la loi (RGPD) demande quelques garanties simples.</p>
-${check("e12a", "Pouvoir SUPPRIMER une personne et toutes ses données (déjà prévu : suppression en cascade)")}
-${check("e12b", "Pouvoir EXPORTER les données d'une personne (son CSV à elle)")}
-${check("e12c", "Demander le CONSENTEMENT (case à cocher, déjà un champ dans la base)")}
-${check("e12d", "Noter une DURÉE de conservation (ex. archiver/supprimer après X années sans contact)")}
-${check("e12e", "Journal minimal des actions importantes (création/suppression)")}
-${callout("Le RGPD, en clair : ne garde que ce qui est utile, dis aux gens ce que tu fais de leurs données, et permets-leur d'y accéder ou de les effacer.")}`),
+${ol([
+  "Pouvoir SUPPRIMER une personne et toutes ses données (déjà prévu : suppression en cascade dans le schéma).",
+  "Pouvoir EXPORTER les données d'une personne (son CSV à elle).",
+  "Demander le CONSENTEMENT (case à cocher ; le champ existe déjà dans la table people).",
+  "Noter une DURÉE de conservation (ex. archiver après X années sans contact).",
+  "Tenir un journal minimal des actions importantes (création/suppression).",
+])}
+${promptClaude("Ajoute les fonctions RGPD : 1) sur la fiche personne, un bouton « Exporter ses données » (CSV de cette personne) ; 2) une case à cocher « consentement » avec date, enregistrée dans people.consent / consent_date ; 3) une table 'audit_log' simple qui enregistre les créations et suppressions de personnes (qui, quoi, quand). Explique comment tester.")}
+${callout("Le RGPD en clair : ne garde que l'utile, dis aux gens ce que tu fais de leurs données, et permets-leur d'y accéder ou de les effacer.")}
+${check("e12", "Je peux supprimer/exporter une personne et le consentement est géré")}`),
 
   step(13, "tests", "Tests", "Vérifier que tout marche, automatiquement",
-`<p>Des petits programmes qui vérifient l'app à ta place, pour éviter les régressions.</p>
-${check("e13a", "Installer l'outil de test")}
+`<p>Des petits programmes qui vérifient l'app à ta place.</p>
+${ol(["Dans le terminal, installe l'outil de test :"])}
 ${code("npm install -D vitest")}
-${check("e13b", "Écrire les tests de base")}
-<ul>
-<li>Création d'une personne</li>
-<li>Création d'une formation</li>
-<li>Inscription d'une personne</li>
-<li>Création d'une relance</li>
-<li>Export CSV</li>
-<li>Accès refusé sans connexion</li>
-</ul>
-${check("e13c", "Lancer les tests")}
+${promptClaude("Mets en place Vitest dans ce projet et écris 6 tests simples : création d'une personne, création d'une formation, inscription d'une personne, création d'une relance, génération d'un export CSV, et accès refusé à une page protégée sans connexion. Ajoute un script \"test\" dans package.json. Explique comment les lancer.")}
+${ol(["Lance les tests :"])}
 ${code("npm test")}
-${callout("Un test « passe » (vert) ou « échoue » (rouge). S'il devient rouge après une modif, c'est que tu as cassé quelque chose : tu le vois tout de suite.")}
-${check("e13d", "Mes 6 tests de base passent au vert")}`),
+${verif("Les 6 tests s'affichent en vert (« passed »). ✅")}
+${callout("Un test « passe » (vert) ou « échoue » (rouge). S'il devient rouge après une modif, tu as cassé quelque chose : tu le vois tout de suite.")}
+${check("e13", "Mes 6 tests de base passent au vert")}`),
 
-  step(14, "deploiement", "Déploiement (mise en ligne)", "Rendre l'app accessible",
+  step(14, "deploiement", "Déploiement (mise en ligne)", "Rendre l'app accessible (clic par clic)",
 `<p>On publie l'app sur Internet avec Vercel.</p>
-<h3>Étapes</h3>
-${check("e14a", "Pousser le code sur GitHub")}
+<h3>1) Envoyer le code sur GitHub</h3>
+${ol(["Dans le terminal du projet :"])}
 ${code("git add -A\ngit commit -m \"Mon avancement\"\ngit push")}
-${check("e14b", "Sur Vercel : Add New → Project → choisir le dépôt GitHub")}
-${check("e14c", "Recopier les variables d'environnement (les mêmes que .env.local)")}
-${table(["Variable", "Valeur"], [
-  ["NEXT_PUBLIC_SUPABASE_URL", "ton URL Supabase"],
-  ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "ta clé anon"],
+<h3>2) Importer dans Vercel</h3>
+${ol([
+  `Va sur ${link("https://vercel.com/new", "https://vercel.com/new")}.`,
+  "Trouve ton dépôt <code>gestion_formation</code> dans la liste, clique <strong>Import</strong>. (Si tu ne le vois pas : clique « Adjust GitHub App Permissions » et autorise le dépôt.)",
+  "À la section <strong>Environment Variables</strong>, ajoute tes 2 clés (les mêmes que .env.local) :",
 ])}
-${check("e14d", "Cliquer Deploy et attendre l'adresse en .vercel.app")}
+${table(["Name", "Value"], [["NEXT_PUBLIC_SUPABASE_URL", "ton URL Supabase"], ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "ta clé anon"]])}
+${ol(["Clique <strong>Deploy</strong> et patiente 1-2 minutes."])}
+${verif("Vercel affiche « Congratulations » avec une adresse en <code>.vercel.app</code>. Ouvre-la sur ton téléphone : ton app est en ligne ! ✅")}
 <h3>Revenir en arrière si ça casse</h3>
-<p>Dans Vercel → onglet « Deployments » → choisir une version précédente qui marchait → <strong>« Promote to Production »</strong>. L'ancienne version revient en 1 clic.</p>
+<p>Vercel → ton projet → onglet <strong>« Deployments »</strong> → choisis une version qui marchait → bouton <strong>« … » → « Promote to Production »</strong>. L'ancienne version revient en 1 clic.</p>
 ${warn("Ne mets jamais les clés directement dans le code : toujours dans les « Environment Variables » de Vercel.")}
-${bro(
-  "Le jour où tu cliques sur « Deploy » et que l'appli s'ouvre sur ton téléphone… franchement, savoure. 🎉 Tu auras mis EN LIGNE un vrai logiciel, toi qui n'avais jamais codé. Envoie le lien à Matthieu, il sera fier (et un peu jaloux que tu y sois arrivé sans lui)."
-)}
-${check("e14e", "Mon app est en ligne et accessible depuis le téléphone")}`),
+${check("e14", "Mon app est en ligne et accessible depuis le téléphone")}
+${bro("Le jour où l'appli s'ouvre sur ton téléphone… savoure. 🎉 Tu auras mis EN LIGNE un vrai logiciel. Envoie le lien à Matthieu, il sera fier (et un peu jaloux que tu y sois arrivé).")}`),
 
   step(15, "documentation", "Documentation", "Pour s'y retrouver plus tard",
-`<p>On écrit un mode d'emploi simple, dans le fichier <code>README.md</code> du projet.</p>
-<h3>Ce que la doc doit expliquer</h3>
-<ul>
-<li>Comment lancer l'application (les commandes)</li>
-<li>Comment créer une formation</li>
-<li>Comment inscrire une personne</li>
-<li>Comment faire une relance</li>
-<li>Comment exporter les données</li>
-<li>Comment corriger les problèmes fréquents</li>
-</ul>
+`<p>On écrit un mode d'emploi simple dans le fichier <code>README.md</code> du projet.</p>
+${promptClaude("Rédige un README.md clair et simple (pour débutant) qui explique : comment lancer l'app en local, comment créer une formation, comment inscrire une personne, comment faire une relance, comment exporter les données, et une section « problèmes fréquents ». Ton accessible.")}
 ${callout("Écris la doc <strong>au fur et à mesure</strong>, pas à la fin : c'est plus facile et tu n'oublies rien.")}
 ${check("e15a", "Le README explique comment lancer et utiliser l'app")}
 ${check("e15b", "🎉 Le MVP est terminé, en ligne, testé et documenté")}
-${bro(
-  "Bravo Franck, pour de vrai. 👏 Tu es parti de zéro et tu as construit une appli complète, étape par étape. C'est exactement ce que <strong>Matthieu</strong> espérait quand il m'a confié la mission de t'accompagner. Maintenant tu n'es plus « le débutant » : tu es celui qui a fini le projet. Prends un moment, et va le dire à ton beau-frère. 🍻"
-)}`),
+${motMatthieu("Bravo Franck, pour de vrai. 👏 Parti de zéro, tu as construit une appli complète, étape par étape. C'est exactement ce que j'espérais. Maintenant tu n'es plus « le débutant » : tu es celui qui a fini le projet. Va le dire, et prends un moment pour être fier. 🍻")}`),
 
-  /* ---------------------------------------------------------- */
+  /* ===== 98 — AGENTS IA ===== */
   {
     slug: "98-agents-ia",
     tag: "Aller plus loin",
     title: "Te faire aider par des agents IA",
-    sub: "Pour maintenir et améliorer le projet sans rester seul — la vérité, sans bla-bla",
+    sub: "Pour maintenir le projet sans rester seul — la vérité, sans bla-bla",
     body: `
-<p>Une appli, ce n'est jamais « fini » : il faut la corriger, l'améliorer, l'entretenir. Bonne nouvelle, Franck : tu n'es pas obligé de tout faire à la main. Tu peux te faire aider par des <strong>agents IA</strong>.</p>
+<p>Une appli n'est jamais « finie » : il faut la corriger, l'améliorer, l'entretenir. Bonne nouvelle : tu peux te faire aider par des <strong>agents IA</strong>.</p>
 ${callout(
-  "<strong>Un agent IA, c'est quoi ?</strong> Un assistant à qui tu confies une mission en français (« ajoute un bouton pour exporter les paiements », « répare le test qui plante »). Il va lire ton projet, faire le travail, et te montrer ce qu'il a changé. Claude Code (celui qui a démarré ce projet) en est un."
+  "<strong>Un agent IA, c'est quoi ?</strong> Un assistant à qui tu confies une mission en français (« ajoute un bouton pour exporter les paiements »). Il lit ton projet, fait le travail, et te montre ce qu'il a changé. Claude Code (celui qui a démarré ce projet) en est un."
 )}
-<h3>Ce que tu peux faire concrètement</h3>
-${table(
-  ["Besoin", "Comment l'agent t'aide"],
-  [
-    ["Ajouter une fonctionnalité", "Tu décris ce que tu veux, il écrit le code et te l'explique."],
-    ["Corriger un bug", "Tu colles le message d'erreur, il trouve la cause et propose un correctif."],
-    ["Comprendre le code", "Tu lui demandes « explique-moi ce fichier simplement »."],
-    ["Tâches récurrentes", "Tu peux créer des agents spécialisés : un qui relit le code, un qui répare les tests qui échouent, un qui surveille tes mises en ligne."],
-  ]
-)}
-<h3>Comment démarrer (le plus simple)</h3>
-${check("ia1", "Ouvrir le projet dans Claude Code sur le web (code.claude.com) ou sur ton PC")}
-${check("ia2", "Écrire ta demande en français, comme à un collègue (« peux-tu... »)")}
-${check("ia3", "Lire ce qu'il propose, poser des questions si tu ne comprends pas")}
-${check("ia4", "Tester le résultat AVANT de le mettre en ligne")}
+<h3>Comment démarrer</h3>
+${ol([
+  `Va sur ${link("https://code.claude.com", "https://code.claude.com")} et connecte-toi.`,
+  "Ouvre ton dépôt <code>gestion_formation</code>.",
+  "Écris ta demande en français, comme à un collègue (« peux-tu… »).",
+  "Lis ce qu'il propose, pose des questions si tu ne comprends pas.",
+  "Teste le résultat AVANT de le mettre en ligne.",
+])}
 ${callout(
-  "Tu peux même aller plus loin et créer des <strong>agents qui travaillent en arrière-plan</strong> : par exemple un agent qui surveille tes modifications sur GitHub et corrige tout seul quand un test casse. C'est très pratique pour l'entretien au long cours — Matthieu pourra t'aider à mettre ça en place une première fois."
+  "Tu peux aussi créer des <strong>agents qui travaillent en arrière-plan</strong> : par exemple un agent qui surveille tes modifications sur GitHub et corrige tout seul quand un test casse. Pratique pour l'entretien au long cours — Matthieu pourra t'aider à le mettre en place une première fois."
 )}
-
 <h3>La vérité, sans te mentir</h3>
 ${warn(
-  "Un agent IA est puissant mais <strong>il n'est pas magique et il peut se tromper avec aplomb</strong> (être sûr de lui tout en ayant tort). Ce n'est pas un pilote automatique : c'est un copilote. <strong>Toi, tu restes le chef.</strong>"
+  "Un agent IA est puissant mais <strong>il peut se tromper avec aplomb</strong> (être sûr de lui en ayant tort). Ce n'est pas un pilote automatique : c'est un copilote. <strong>Toi, tu restes le chef.</strong>"
 )}
-<p>Donc, trois réflexes simples et non négociables :</p>
-<ul>
-<li><strong>Toujours relire</strong> ce que l'agent change avant d'accepter (il te montre tout).</li>
-<li><strong>Toujours tester</strong> avant de mettre en ligne (lance l'app, clique, vérifie).</li>
-<li><strong>Toujours garder une sauvegarde</strong> : fais un export CSV régulier, c'est ton filet de sécurité gratuit.</li>
-</ul>
+<p>Trois réflexes non négociables :</p>
+<ul><li><strong>Toujours relire</strong> ce que l'agent change avant d'accepter.</li><li><strong>Toujours tester</strong> avant de mettre en ligne.</li><li><strong>Toujours garder une sauvegarde</strong> (export CSV régulier).</li></ul>
 ${bro(
-  "Pourquoi je te dis tout ça franchement ? Parce que Matthieu m'a demandé de t'<strong>aider</strong>, pas de te raconter que tout est facile. Un bon copilote dit la vérité. Les agents IA vont te faire gagner un temps fou — à condition que tu gardes la main et le bon sens. Et ça, le bon sens, tu l'as déjà."
+  "Pourquoi je te dis ça franchement ? Parce que Matthieu m'a demandé de t'<strong>aider</strong>, pas de te raconter que tout est facile. Un bon copilote dit la vérité. Les agents IA vont te faire gagner un temps fou — à condition que tu gardes la main et le bon sens. Et ça, tu l'as déjà."
 )}
-${motMatthieu(
-  "Franck, le jour où tu donnes tes premières instructions à un agent et qu'il te pond le truc que tu voulais... tu vas halluciner. Tu n'as pas besoin d'être un génie de l'info : tu as besoin de savoir <strong>demander clairement</strong> et de <strong>vérifier</strong>. Ça, tu sais déjà le faire dans ton métier. Lance-toi, je suis fier de toi rien que d'avoir commencé."
-)}
-${check("ia5", "J'ai compris que l'IA m'aide, mais que je garde la main et je vérifie toujours")}
+${check("ia-ok", "J'ai compris : l'IA m'aide, mais je garde la main et je vérifie toujours")}
 `,
   },
 
-  /* ---------------------------------------------------------- */
+  /* ===== 99 — DÉPANNAGE ===== */
   {
     slug: "99-depannage",
     tag: "Aide",
@@ -684,60 +671,115 @@ ${table(["Mot", "Traduction simple"], [
   ["Clone", "Télécharger une copie du projet liée au dépôt"],
   ["Déployer", "Mettre l'app en ligne"],
   ["Variable d'environnement", "Un réglage secret (clé) rangé hors du code"],
-  ["Localhost", "Ton ordinateur, l'app tourne juste pour toi"],
-]) }
-
+  ["Localhost", "Ton ordinateur ; l'app tourne juste pour toi"],
+])}
 <h3>Problèmes fréquents et solutions</h3>
 ${table(["Symptôme", "Cause probable → Solution"], [
-  ["« command not found » / « n'est pas reconnu »", "Logiciel pas installé ou terminal pas redémarré → ferme et rouvre le terminal, revérifie l'installation."],
-  ["L'app ne démarre pas (npm run dev échoue)", "Dépendances manquantes → lance <code>npm install</code> puis réessaie."],
+  ["« n'est pas reconnu » / « command not found »", "Logiciel pas installé ou terminal pas redémarré → ferme et rouvre le terminal, revérifie l'installation."],
+  ["npm run dev échoue", "Briques manquantes → lance <code>npm install</code> puis réessaie."],
   ["Page blanche / erreur Supabase", "Clés .env.local manquantes ou fausses → recopie-les depuis Supabase (Settings → API)."],
-  ["« Invalid login credentials »", "Mauvais email/mot de passe, ou compte admin pas créé dans Supabase → vérifie Authentication."],
-  ["Le projet Supabase est « paused »", "Plan gratuit en pause après 1 semaine → clique « Restore » dans le tableau de bord Supabase."],
-  ["Le déploiement Vercel échoue", "Variables d'environnement oubliées → ajoute-les dans Vercel → Settings → Environment Variables, puis redeploy."],
-]) }
-
-${callout("Règle de dépannage du débutant : <strong>lis le message d'erreur en entier</strong> (il dit souvent quoi faire), copie-le dans un moteur de recherche, ou colle-le à l'assistant Claude Code en demandant « explique-moi cette erreur simplement »." )}
-
+  ["« Invalid login credentials »", "Mauvais email/mot de passe, ou compte admin pas créé → vérifie Authentication dans Supabase."],
+  ["Projet Supabase « paused »", "Plan gratuit en pause après 1 semaine → clique « Restore » dans le dashboard Supabase."],
+  ["Déploiement Vercel échoue", "Variables d'environnement oubliées → ajoute-les dans Vercel → Settings → Environment Variables → Redeploy."],
+])}
+${callout(
+  "Règle d'or du dépannage : <strong>lis le message d'erreur en entier</strong> (il dit souvent quoi faire), puis colle-le à Claude Code en demandant « explique-moi cette erreur simplement et corrige-la »."
+)}
 <h3>Où trouver de l'aide</h3>
 <ul>
-<li>La doc Supabase (supabase.com/docs) et Vercel (vercel.com/docs).</li>
-<li>Claude Code sur le web : ouvre le dépôt et décris ton blocage.</li>
-<li>Reprends la notice de l'étape concernée, étape par étape.</li>
-<li><strong>Matthieu</strong>, ton beau-frère : c'est lui qui m'a demandé de t'aider et il s'y connaît en dev — parfait pour un coup de main technique.</li>
+<li>Doc Supabase : ${link("https://supabase.com/docs", "supabase.com/docs")} — Doc Vercel : ${link("https://vercel.com/docs", "vercel.com/docs")}.</li>
+<li>Claude Code : ${link("https://code.claude.com", "code.claude.com")} — ouvre le dépôt et décris ton blocage.</li>
+<li><strong>Matthieu</strong>, ton beau-frère : il m'a demandé de t'aider et il s'y connaît en dev — parfait pour un coup de main technique.</li>
 </ul>
 ${bro(
-  "Dernier rappel, et pas le moindre : <strong>demander de l'aide n'est pas tricher</strong>, c'est même la bonne méthode. Matthieu m'a demandé de te conseiller, donc utilise-moi à fond, et n'hésite jamais à le solliciter lui aussi. Un blocage partagé, c'est un blocage à moitié résolu. On est une équipe, Franck."
+  "Dernier rappel : <strong>demander de l'aide n'est pas tricher</strong>, c'est la bonne méthode. Utilise-moi à fond, et sollicite Matthieu sans gêne. Un blocage partagé, c'est un blocage à moitié résolu. On est une équipe, Franck."
 )}
 `,
   },
 ];
 
-/* Fabrique une notice "étape du projet" (numérotée) */
-function step(num, slug, title, sub, body) {
-  return {
-    slug: "etape-" + String(num).padStart(2, "0") + "-" + slug,
-    tag: "Étape " + num,
-    title: "Étape " + num + " — " + title,
-    sub,
-    body,
-  };
+/* ----- Boîte à prompts Codex : rassemble automatiquement tous les prompts ----- */
+function unesc(s) {
+  return String(s).replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
+}
+// Le prompt de CONTEXTE à coller en tout premier dans Codex
+const CONTEXT_PROMPT =
+  "Tu es mon assistant de code. Je suis débutant, explique simplement et n'agis que sur ce que je demande.\n" +
+  "Projet : une PWA de gestion de formations (mini-CRM pour un organisme de formation).\n" +
+  "Stack : Next.js (App Router) + TypeScript + Tailwind, base de données et authentification via Supabase (@supabase/supabase-js et @supabase/ssr).\n" +
+  "La base contient déjà ces tables : users, people, organizations, trainers, courses, sessions, enrollments, payments, crm_followups, notes, documents, satisfaction_surveys (voir db/schema.sql).\n" +
+  "Règles : code simple, lisible, commenté en français, responsive (mobile d'abord), pas de dépendance inutile, messages d'erreur clairs en français. Ne mets jamais de secret en dur dans le code (utilise .env.local). Après chaque tâche, explique-moi comment tester.\n" +
+  "Réponds OK si tu as compris, puis attends ma première demande.";
+
+function extractPrompts() {
+  const out = [{ title: "0) À coller en TOUT PREMIER — le contexte du projet", text: CONTEXT_PROMPT }];
+  const re = /<div class="prompt">[\s\S]*?<pre><code>([\s\S]*?)<\/code><\/pre>/g;
+  NOTICES.forEach((n) => {
+    let m;
+    while ((m = re.exec(n.body))) out.push({ title: n.title, text: unesc(m[1]) });
+  });
+  return out;
 }
 
+const codexBody =
+  `<p>Voici <strong>tous les prompts</strong> du projet, réunis ici pour que tu puisses les copier d'un seul endroit. Un « prompt », c'est juste <strong>la consigne que tu donnes à l'IA en français</strong>.</p>` +
+  callout(
+    "<strong>Codex, c'est quoi ?</strong> Un assistant de code : tu lui écris ce que tu veux en français, il écrit le code à ta place. Claude Code marche pareil. Le principe est toujours le même : tu colles un prompt, tu lis ce qu'il propose, tu testes, et tu gardes la main."
+  ) +
+  `<h3>Comment t'en servir, dans l'ordre</h3>` +
+  ol([
+    "Ouvre ton projet dans Codex (ou Claude Code).",
+    "Colle d'abord le <strong>prompt de contexte (0)</strong> ci-dessous : il explique le projet à l'IA. Attends qu'elle réponde « OK ».",
+    "Ensuite, pour chaque étape, colle le prompt correspondant.",
+    "<strong>Relis</strong> ce qu'elle propose, <strong>teste</strong> en suivant ses indications, et seulement après, passe à la suite.",
+  ]) +
+  warn(
+    "Un prompt n'est pas une formule magique : si le résultat ne te convient pas, réponds simplement à l'IA en français (« ça ne marche pas, j'ai cette erreur : … » ou « peux-tu le faire plus simplement ? »). On affine par la discussion."
+  ) +
+  extractPrompts()
+    .map((p) => `<h3>${p.title}</h3>${code(p.text)}`)
+    .join("") +
+  bro(
+    "Ces prompts, je te les ai écrits pour qu'ils soient clairs et précis — c'est 80 % du secret pour bien se faire aider par une IA. Avec ça, tu n'es jamais devant la page blanche : tu copies, tu colles, tu vérifies. Et si un prompt ne donne pas le bon résultat, dis-le-moi, on l'améliore ensemble."
+  ) +
+  check("codex-ready", "J'ai compris comment utiliser mes prompts avec Codex");
+
+const codexNotice = {
+  slug: "97-prompts-codex",
+  tag: "Boîte à prompts",
+  title: "Tous tes prompts prêts à l'emploi (Codex)",
+  sub: "Copie-colle dans Codex / Claude Code — dans l'ordre",
+  body: codexBody,
+};
+// On insère cette page juste avant la page « agents IA »
+const _iaIndex = NOTICES.findIndex((n) => n.slug === "98-agents-ia");
+NOTICES.splice(_iaIndex, 0, codexNotice);
+
+/* Collecte toutes les clés de cases à cocher (pour la barre de progression globale) */
+const ALL_KEYS = [];
+NOTICES.forEach((n) => {
+  (n.body.match(/data-key="([^"]+)"/g) || []).forEach((m) => ALL_KEYS.push(m.slice(10, -1)));
+});
+
 /* ============================================================
- *  STYLES (partagés guide + PDF)
+ *  STYLES communs
  * ============================================================ */
 const BASE_CSS = `
 :root{--blue:#1d4ed8;--slate:#0f172a;--grey:#475569;--line:#e2e8f0;--soft:#f8fafc;--green:#059669;--amber:#d97706;}
 *{box-sizing:border-box;}
-body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;background:#f1f5f9;}
 h2{font-size:20px;margin:22px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--line);}
 h3{font-size:16px;margin:18px 0 6px;color:var(--blue);}
-p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:4px 0;}
+p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:5px 0;}
+a.ext{color:var(--blue);word-break:break-all;font-weight:600;}
 code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:.92em;}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
 th{background:var(--blue);color:#fff;font-weight:600;} tr:nth-child(even) td{background:var(--soft);}
+ol.steps{counter-reset:s;list-style:none;padding-left:0;margin:10px 0;}
+ol.steps>li{counter-increment:s;position:relative;padding:8px 10px 8px 44px;border:1px solid var(--line);background:#fff;border-radius:8px;margin:7px 0;}
+ol.steps>li::before{content:counter(s);position:absolute;left:8px;top:8px;width:26px;height:26px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+.verif{background:#ecfdf5;border-left:4px solid var(--green);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
 .callout{background:#eff6ff;border-left:4px solid var(--blue);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
 .warnbox{background:#fffbeb;border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
 .decision{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:16px 0;}
@@ -751,10 +793,12 @@ pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflo
 pre code{background:none;color:inherit;padding:0;}
 .copy{position:absolute;top:8px;right:8px;background:#334155;color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;}
 .copy:hover{background:#475569;}
-.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px;margin:6px 0;cursor:pointer;}
+.prompt{border:1px dashed #94a3b8;border-radius:8px;padding:8px 10px;margin:12px 0;background:#fff;}
+.prompt-h{font-weight:600;color:#475569;font-size:13.5px;margin-bottom:4px;}
+.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:8px 0;cursor:pointer;}
 .check input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;}
 .check span{font-size:14.5px;}
-.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;}
+.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
 .pill.green{background:var(--green);}
 .bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
 .bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
@@ -766,148 +810,160 @@ pre code{background:none;color:inherit;padding:0;}
 .matt-sign{font-size:12.5px;color:#1e40af;margin-top:6px;font-style:italic;}
 `;
 
+const PAGE_JS = `
+document.querySelectorAll('.copy').forEach(function(b){b.addEventListener('click',function(){var c=b.parentElement.querySelector('code').innerText;navigator.clipboard.writeText(c).then(function(){b.textContent='Copié ✓';setTimeout(function(){b.textContent='Copier';},1500);});});});
+var ALL=__ALLKEYS__;
+function refresh(){var done=0;ALL.forEach(function(k){if(localStorage.getItem('gf_'+k)==='1')done++;});var pct=ALL.length?Math.round(done/ALL.length*100):0;var bar=document.getElementById('pbar');if(bar)bar.style.width=pct+'%';var lbl=document.getElementById('plabel');if(lbl)lbl.textContent=done+' / '+ALL.length+' étapes cochées ('+pct+'%)';}
+document.querySelectorAll('input[data-key]').forEach(function(b){var k='gf_'+b.dataset.key;if(localStorage.getItem(k)==='1')b.checked=true;b.addEventListener('change',function(){localStorage.setItem(k,b.checked?'1':'0');refresh();});});
+refresh();
+var burger=document.getElementById('burger'),sb=document.getElementById('sidebar');
+if(burger)burger.addEventListener('click',function(){sb.classList.toggle('open');});
+document.querySelectorAll('.navlink').forEach(function(a){a.addEventListener('click',function(){if(sb)sb.classList.remove('open');});});
+`;
+
 /* ============================================================
- *  GÉNÉRATION DU GUIDE INTERACTIF (un seul fichier)
+ *  GÉNÉRATION DES PAGES (mini-site multi-pages)
  * ============================================================ */
-function buildInteractive() {
-  const nav = NOTICES.map(
+function navHtml(activeIndex) {
+  return NOTICES.map(
     (n, i) =>
-      `<a href="#n${i}" class="navlink"><span class="navtag">${n.tag}</span>${n.title}</a>`
+      `<a href="${pageName(i)}" class="navlink${i === activeIndex ? " active" : ""}"><span class="navtag">${n.tag}</span>${n.title}</a>`
   ).join("");
-
-  const sections = NOTICES.map(
-    (n, i) => `
-<section class="notice" id="n${i}">
-  <div class="notice-head" data-acc>
-    <div><span class="pill green" style="background:var(--blue)">${n.tag}</span>
-    <h2 style="border:none;margin:6px 0 0;display:inline-block">${n.title}</h2>
-    <div class="notice-sub">${n.sub}</div></div>
-    <div class="chev">▼</div>
-  </div>
-  <div class="notice-body">${n.body}</div>
-</section>`
-  ).join("");
-
-  const html = `<!DOCTYPE html><html lang="fr"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kit de reprise — PWA Gestion de formations</title>
+}
+function pageName(i) {
+  return String(i).padStart(2, "0") + "-" + NOTICES[i].slug.replace(/^\d+-/, "") + ".html";
+}
+function pageShell(i) {
+  const n = NOTICES[i];
+  const prev = i > 0 ? `<a class="navbtn" href="${pageName(i - 1)}">◀ Précédent</a>` : `<a class="navbtn" href="../index.html">◀ Sommaire</a>`;
+  const next = i < NOTICES.length - 1 ? `<a class="navbtn primary" href="${pageName(i + 1)}">Suivant ▶</a>` : `<a class="navbtn primary" href="../index.html">Terminé — Sommaire ▶</a>`;
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${n.title} — Kit de Franck</title>
 <style>${BASE_CSS}
-body{background:#f1f5f9;}
 .topbar{position:sticky;top:0;z-index:30;background:var(--blue);color:#fff;display:flex;align-items:center;gap:12px;padding:10px 14px;}
-.topbar h1{font-size:16px;margin:0;flex:1;}
+.topbar h1{font-size:15px;margin:0;flex:1;}
 .burger{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:18px;border-radius:6px;padding:4px 10px;cursor:pointer;}
-.progress{height:6px;background:rgba(255,255,255,.25);}
-.progress > div{height:100%;background:#a7f3d0;width:0;transition:width .3s;}
+.progress{height:6px;background:rgba(255,255,255,.25);} .progress>div{height:100%;background:#a7f3d0;width:0;transition:width .3s;}
+.plabel{font-size:11px;color:#475569;padding:4px 14px;background:#fff;border-bottom:1px solid var(--line);}
 .layout{display:flex;max-width:1100px;margin:0 auto;}
 .sidebar{width:280px;flex:0 0 auto;background:#fff;border-right:1px solid var(--line);padding:10px;height:calc(100vh - 52px);position:sticky;top:52px;overflow:auto;}
-.navlink{display:block;padding:8px 10px;border-radius:6px;color:var(--slate);text-decoration:none;font-size:13.5px;border-left:3px solid transparent;}
+.navlink{display:block;padding:7px 10px;border-radius:6px;color:var(--slate);text-decoration:none;font-size:13px;border-left:3px solid transparent;}
 .navlink:hover{background:var(--soft);} .navlink.active{background:#eff6ff;border-left-color:var(--blue);font-weight:600;}
-.navtag{display:block;font-size:10.5px;color:var(--blue);font-weight:700;text-transform:uppercase;}
-.content{flex:1;min-width:0;padding:18px 22px 80px;}
-.notice{background:#fff;border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden;}
-.notice-head{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;background:#fff;}
-.notice-head h2{font-size:18px;} .notice-sub{font-size:13px;color:var(--grey);margin-top:2px;}
-.chev{margin-left:auto;color:var(--grey);transition:transform .2s;}
-.notice.collapsed .notice-body{display:none;} .notice.collapsed .chev{transform:rotate(-90deg);}
-.notice-body{padding:0 18px 18px;}
-.toTop{position:fixed;bottom:18px;right:18px;background:var(--blue);color:#fff;border:none;border-radius:50%;width:46px;height:46px;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;}
-.reset{background:none;border:1px solid var(--line);color:var(--grey);font-size:12px;border-radius:6px;padding:6px 10px;cursor:pointer;margin:6px 0 12px;width:100%;}
+.navtag{display:block;font-size:10px;color:var(--blue);font-weight:700;text-transform:uppercase;}
+.content{flex:1;min-width:0;padding:18px 22px 40px;}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;}
+.crumb{font-size:12px;color:var(--blue);font-weight:700;text-transform:uppercase;}
+.navbar{display:flex;justify-content:space-between;gap:10px;margin-top:24px;}
+.navbtn{display:inline-block;padding:11px 16px;border-radius:8px;background:#fff;border:1px solid var(--line);color:var(--slate);text-decoration:none;font-weight:600;font-size:14px;}
+.navbtn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
 @media(max-width:820px){
-  .sidebar{position:fixed;left:0;top:52px;z-index:25;transform:translateX(-100%);transition:transform .25s;box-shadow:2px 0 12px rgba(0,0,0,.15);width:84%;max-width:320px;}
-  .sidebar.open{transform:translateX(0);} .content{padding:14px;}
-  body{font-size:15.5px;}
+ .sidebar{position:fixed;left:0;top:52px;z-index:25;transform:translateX(-100%);transition:transform .25s;box-shadow:2px 0 12px rgba(0,0,0,.15);width:84%;max-width:320px;}
+ .sidebar.open{transform:translateX(0);} .content{padding:14px;} body{font-size:15.5px;}
 }
 @media(min-width:821px){ .burger{display:none;} }
 </style></head><body>
-<div class="topbar">
-  <button class="burger" id="burger">☰</button>
-  <h1>Le kit de Franck — Gestion de formations</h1>
-</div>
-<div class="progress"><div id="progressBar"></div></div>
+<div class="topbar"><button class="burger" id="burger">☰</button><h1>Le kit de Franck — ${n.tag}</h1></div>
+<div class="progress"><div id="pbar"></div></div>
+<div class="plabel" id="plabel"></div>
 <div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <button class="reset" id="reset">↺ Réinitialiser ma progression</button>
-    ${nav}
-  </aside>
-  <main class="content">
-    <p style="color:var(--grey);font-size:14px">Guide interactif — coche les cases au fur et à mesure, ta progression est sauvegardée dans CE navigateur. Clique sur un titre pour replier/déplier une étape.</p>
-    ${sections}
-  </main>
+ <aside class="sidebar" id="sidebar">${navHtml(i)}</aside>
+ <main class="content">
+   <div class="card">
+     <div class="crumb">${n.tag} — page ${i + 1} / ${NOTICES.length}</div>
+     <h2 style="border:none;margin:6px 0 2px">${n.title}</h2>
+     <div style="color:var(--grey);font-size:14px;margin-bottom:8px">${n.sub}</div>
+     ${n.body}
+     <div class="navbar">${prev}${next}</div>
+   </div>
+ </main>
 </div>
-<button class="toTop" id="toTop" title="Haut de page">↑</button>
-<script>
-// --- copier le code ---
-document.querySelectorAll('.copy').forEach(function(b){
-  b.addEventListener('click',function(){
-    var code=b.parentElement.querySelector('code').innerText;
-    navigator.clipboard.writeText(code).then(function(){b.textContent='Copié ✓';setTimeout(function(){b.textContent='Copier';},1500);});
-  });
-});
-// --- replier/déplier ---
-document.querySelectorAll('[data-acc]').forEach(function(h){
-  h.addEventListener('click',function(){h.parentElement.classList.toggle('collapsed');});
-});
-// --- cases à cocher persistantes ---
-var boxes=document.querySelectorAll('input[data-key]');
-function refreshProgress(){
-  var done=0; boxes.forEach(function(b){if(b.checked)done++;});
-  var pct=boxes.length?Math.round(done/boxes.length*100):0;
-  document.getElementById('progressBar').style.width=pct+'%';
-}
-boxes.forEach(function(b){
-  var k='gf_'+b.dataset.key;
-  if(localStorage.getItem(k)==='1')b.checked=true;
-  b.addEventListener('change',function(){localStorage.setItem(k,b.checked?'1':'0');refreshProgress();});
-});
-refreshProgress();
-document.getElementById('reset').addEventListener('click',function(){
-  if(confirm('Effacer toutes les cases cochées ?')){boxes.forEach(function(b){b.checked=false;localStorage.removeItem('gf_'+b.dataset.key);});refreshProgress();}
-});
-// --- menu mobile ---
-var sb=document.getElementById('sidebar');
-document.getElementById('burger').addEventListener('click',function(){sb.classList.toggle('open');});
-document.querySelectorAll('.navlink').forEach(function(a){a.addEventListener('click',function(){sb.classList.remove('open');});});
-// --- bouton haut + lien actif ---
-var toTop=document.getElementById('toTop');
-window.addEventListener('scroll',function(){toTop.style.display=window.scrollY>400?'block':'none';});
-toTop.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
-</script>
+<script>${PAGE_JS.replace("__ALLKEYS__", JSON.stringify(ALL_KEYS))}</script>
 </body></html>`;
-  fs.writeFileSync(path.join(OUT, "index.html"), html);
-  console.log("Guide interactif : index.html");
+}
+function buildPages() {
+  if (!fs.existsSync(PAGES_DIR)) fs.mkdirSync(PAGES_DIR, { recursive: true });
+  // nettoie les anciennes pages
+  fs.readdirSync(PAGES_DIR).filter((f) => f.endsWith(".html")).forEach((f) => fs.unlinkSync(path.join(PAGES_DIR, f)));
+  NOTICES.forEach((n, i) => fs.writeFileSync(path.join(PAGES_DIR, pageName(i)), pageShell(i)));
+  console.log("Pages générées : " + NOTICES.length + " dans pages/");
 }
 
 /* ============================================================
- *  GÉNÉRATION DES NOTICES PDF (une par étape, version imprimable)
+ *  SOMMAIRE (index.html)
+ * ============================================================ */
+function buildIndex() {
+  const items = NOTICES.map(
+    (n, i) =>
+      `<a class="tile" href="pages/${pageName(i)}"><div class="tnum">${String(i).padStart(2, "0")}</div><div><div class="ttag">${n.tag}</div><div class="ttitle">${n.title}</div><div class="tsub">${n.sub}</div></div></a>`
+  ).join("");
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le kit de Franck — Sommaire</title><style>${BASE_CSS}
+.hero{background:linear-gradient(135deg,#1d4ed8,#1e3a8a);color:#fff;padding:30px 22px;}
+.hero h1{margin:0 0 6px;font-size:26px;} .hero p{margin:4px 0;opacity:.95;}
+.wrap{max-width:900px;margin:0 auto;padding:18px;}
+.plabel{font-size:13px;color:#475569;margin:6px 0 14px;}
+.progress{height:8px;background:#e2e8f0;border-radius:6px;overflow:hidden;margin:8px 0 2px;} .progress>div{height:100%;background:var(--green);width:0;transition:width .3s;}
+.tile{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0;text-decoration:none;color:var(--slate);}
+.tile:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(29,78,216,.08);}
+.tnum{flex:0 0 auto;width:40px;height:40px;background:#eff6ff;color:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+.ttag{font-size:10.5px;color:var(--blue);font-weight:700;text-transform:uppercase;}
+.ttitle{font-weight:700;} .tsub{font-size:13px;color:var(--grey);}
+</style></head><body>
+<div class="hero"><div class="wrap" style="padding:0">
+<h1>👋 Le kit de Franck</h1>
+<p>Le guide pas-à-pas pour construire l'appli de gestion de formations — de A à Z, sans avoir jamais codé.</p>
+<p style="font-size:13px">Préparé par Claude, à la demande de Matthieu (ton beau-frère). Clique une étape pour l'ouvrir.</p>
+</div></div>
+<div class="wrap">
+<div class="progress"><div id="pbar"></div></div>
+<div class="plabel" id="plabel">Progression…</div>
+${items}
+</div>
+<script>
+var ALL=${JSON.stringify(ALL_KEYS)};
+var done=0;ALL.forEach(function(k){if(localStorage.getItem('gf_'+k)==='1')done++;});
+var pct=ALL.length?Math.round(done/ALL.length*100):0;
+document.getElementById('pbar').style.width=pct+'%';
+document.getElementById('plabel').textContent=done+' / '+ALL.length+' étapes cochées ('+pct+'%) — ta progression est sauvegardée dans ce navigateur.';
+</script>
+</body></html>`;
+  fs.writeFileSync(path.join(OUT, "index.html"), html);
+  console.log("Sommaire généré : index.html");
+}
+
+/* ============================================================
+ *  NOTICES PDF (version imprimable, sans JS)
  * ============================================================ */
 function buildPdfPages() {
   if (!fs.existsSync(PDF_DIR)) fs.mkdirSync(PDF_DIR, { recursive: true });
-  // Dans les PDF, on retire les boutons "copier" (inutiles à l'impression)
-  NOTICES.forEach(function (n, i) {
-    var body = n.body.replace(/<button class="copy"[^>]*>Copier<\/button>/g, "");
-    var html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
-<title>${n.title}</title><style>${BASE_CSS}
+  fs.readdirSync(PDF_DIR).filter((f) => f.endsWith(".html") || f.endsWith(".pdf")).forEach((f) => fs.unlinkSync(path.join(PDF_DIR, f)));
+  NOTICES.forEach((n, i) => {
+    const body = n.body.replace(/<button class="copy"[^>]*>Copier<\/button>/g, "");
+    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${n.title}</title><style>${BASE_CSS}
+body{background:#fff;}
 @page{margin:15mm;}
 .page{max-width:780px;margin:0 auto;padding:10px;}
 .cover{border-bottom:4px solid var(--blue);padding-bottom:12px;margin-bottom:16px;}
 .cover .kicker{color:var(--blue);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.06em;}
 .cover h1{font-size:23px;margin:6px 0 2px;} .cover .sub{color:var(--grey);font-size:13px;}
 .cover .meta{margin-top:8px;color:var(--grey);font-size:11px;}
-.check{break-inside:avoid;} table,.callout,.warnbox,.decision,.codewrap{break-inside:avoid;}
+ol.steps>li,.check,table,.callout,.warnbox,.verif,.decision,.codewrap,.prompt,.bro,.matt{break-inside:avoid;}
 footer{margin-top:24px;padding-top:10px;border-top:1px solid var(--line);color:var(--grey);font-size:10.5px;text-align:center;}
 </style></head><body><div class="page">
-<div class="cover"><div class="kicker">Kit de reprise — PWA Gestion de formations</div>
+<div class="cover"><div class="kicker">Le kit de Franck — PWA Gestion de formations</div>
 <h1>${n.title}</h1><div class="sub">${n.sub}</div>
-<div class="meta">Notice ${String(i).padStart(2,"0")} / ${NOTICES.length-1} &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
+<div class="meta">Notice ${String(i).padStart(2, "0")} / ${NOTICES.length - 1} &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
 ${body}
-<footer>Kit de reprise — Notice « ${n.tag} » • Projet PWA Gestion de formations</footer>
+<footer>Le kit de Franck — Notice « ${n.tag} » • Projet PWA Gestion de formations</footer>
 </div></body></html>`;
-    var name = String(i).padStart(2, "0") + "-" + n.slug + ".html";
-    fs.writeFileSync(path.join(PDF_DIR, name), html);
+    fs.writeFileSync(path.join(PDF_DIR, pageName(i)), html);
   });
-  console.log("Notices PDF (HTML) générées : " + NOTICES.length + " fichiers dans pdf/");
+  console.log("Notices PDF (HTML) générées : " + NOTICES.length + " dans pdf/");
 }
 
-buildInteractive();
+buildPages();
+buildIndex();
 buildPdfPages();
-console.log("Terminé.");
+console.log("Terminé. " + ALL_KEYS.length + " cases à cocher au total.");

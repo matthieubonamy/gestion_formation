@@ -1,15 +1,19 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
-<title>Étape 4 — Authentification (connexion admin)</title><style>
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Étape 4 — Authentification (connexion admin)</title><style>
 :root{--blue:#1d4ed8;--slate:#0f172a;--grey:#475569;--line:#e2e8f0;--soft:#f8fafc;--green:#059669;--amber:#d97706;}
 *{box-sizing:border-box;}
-body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;background:#f1f5f9;}
 h2{font-size:20px;margin:22px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--line);}
 h3{font-size:16px;margin:18px 0 6px;color:var(--blue);}
-p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:4px 0;}
+p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:5px 0;}
+a.ext{color:var(--blue);word-break:break-all;font-weight:600;}
 code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:.92em;}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
 th{background:var(--blue);color:#fff;font-weight:600;} tr:nth-child(even) td{background:var(--soft);}
+ol.steps{counter-reset:s;list-style:none;padding-left:0;margin:10px 0;}
+ol.steps>li{counter-increment:s;position:relative;padding:8px 10px 8px 44px;border:1px solid var(--line);background:#fff;border-radius:8px;margin:7px 0;}
+ol.steps>li::before{content:counter(s);position:absolute;left:8px;top:8px;width:26px;height:26px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+.verif{background:#ecfdf5;border-left:4px solid var(--green);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
 .callout{background:#eff6ff;border-left:4px solid var(--blue);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
 .warnbox{background:#fffbeb;border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
 .decision{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:16px 0;}
@@ -23,10 +27,12 @@ pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflo
 pre code{background:none;color:inherit;padding:0;}
 .copy{position:absolute;top:8px;right:8px;background:#334155;color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;}
 .copy:hover{background:#475569;}
-.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px;margin:6px 0;cursor:pointer;}
+.prompt{border:1px dashed #94a3b8;border-radius:8px;padding:8px 10px;margin:12px 0;background:#fff;}
+.prompt-h{font-weight:600;color:#475569;font-size:13.5px;margin-bottom:4px;}
+.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:8px 0;cursor:pointer;}
 .check input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;}
 .check span{font-size:14.5px;}
-.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;}
+.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
 .pill.green{background:var(--green);}
 .bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
 .bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
@@ -37,31 +43,31 @@ pre code{background:none;color:inherit;padding:0;}
 .matt p{margin:4px 0;color:#1e3a5f;}
 .matt-sign{font-size:12.5px;color:#1e40af;margin-top:6px;font-style:italic;}
 
+body{background:#fff;}
 @page{margin:15mm;}
 .page{max-width:780px;margin:0 auto;padding:10px;}
 .cover{border-bottom:4px solid var(--blue);padding-bottom:12px;margin-bottom:16px;}
 .cover .kicker{color:var(--blue);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.06em;}
 .cover h1{font-size:23px;margin:6px 0 2px;} .cover .sub{color:var(--grey);font-size:13px;}
 .cover .meta{margin-top:8px;color:var(--grey);font-size:11px;}
-.check{break-inside:avoid;} table,.callout,.warnbox,.decision,.codewrap{break-inside:avoid;}
+ol.steps>li,.check,table,.callout,.warnbox,.verif,.decision,.codewrap,.prompt,.bro,.matt{break-inside:avoid;}
 footer{margin-top:24px;padding-top:10px;border-top:1px solid var(--line);color:var(--grey);font-size:10.5px;text-align:center;}
 </style></head><body><div class="page">
-<div class="cover"><div class="kicker">Kit de reprise — PWA Gestion de formations</div>
+<div class="cover"><div class="kicker">Le kit de Franck — PWA Gestion de formations</div>
 <h1>Étape 4 — Authentification (connexion admin)</h1><div class="sub">Le portier de l'app</div>
-<div class="meta">Notice 10 / 23 &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
-<p>On met une page de connexion et on protège toutes les autres pages.</p>
-<h3>Comment ça marche (en simple)</h3>
-<ul>
-<li>L'admin tape email + mot de passe sur une page <code>/login</code>.</li>
-<li>Supabase vérifie, et donne un « jeton » (badge d'entrée) au navigateur.</li>
-<li>Chaque page privée vérifie le badge ; sans badge → redirection vers <code>/login</code>.</li>
-</ul>
-<label class="check"><input type="checkbox" data-key="e4a"><span>Créer le compte admin dans Supabase → Authentication → Add user</span></label>
-<label class="check"><input type="checkbox" data-key="e4b"><span>Créer la page /login (formulaire email + mot de passe)</span></label>
-<label class="check"><input type="checkbox" data-key="e4c"><span>Ajouter un « middleware » qui protège les pages privées</span></label>
-<div class="callout">Un <strong>middleware</strong> est un videur placé à l'entrée : il vérifie le badge avant de laisser voir la page.</div>
-<label class="check"><input type="checkbox" data-key="e4d"><span>Tester : sans connexion, /dashboard renvoie vers /login ; avec connexion, on entre</span></label>
+<div class="meta">Notice 10 / 24 &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
+<p>On met une page de connexion et on protège les autres pages.</p>
+<h3>1) Créer ton compte admin dans Supabase (clic par clic)</h3>
+<ol class="steps"><li>Dashboard Supabase → menu de gauche <strong>« Authentication »</strong> → onglet <strong>« Users »</strong>.</li><li>Clique <strong>« Add user »</strong> → <strong>« Create new user »</strong>.</li><li>Saisis ton <strong>email</strong> et un <strong>mot de passe</strong> (note-le), coche « Auto Confirm User », clique <strong>Create user</strong>.</li></ol>
+<div class="verif">✅ <strong>Vérifie :</strong> Ton email apparaît dans la liste des utilisateurs ✅.</div>
+<label class="check"><input type="checkbox" data-key="e4a"><span>Mon compte admin existe dans Supabase</span></label>
+<h3>2) Créer la page de connexion + la protection</h3>
+<p>Là, c'est du code. Le plus simple et fiable pour un débutant : demander à Claude Code de l'écrire, puis vérifier.</p>
+<div class="prompt"><div class="prompt-h">🤖 Prompt à copier-coller dans Codex (ou Claude Code)</div><div class="codewrap"><pre><code>Dans ce projet Next.js (App Router) avec @supabase/ssr déjà installé, crée une page de connexion sur /login (email + mot de passe) qui utilise Supabase Auth, et un middleware qui protège toutes les pages sauf /login en redirigeant les visiteurs non connectés vers /login. Ajoute aussi un bouton de déconnexion. Explique-moi simplement ce que tu as créé.</code></pre></div></div>
+<div class="callout">Un <strong>middleware</strong> est un videur à l'entrée : il vérifie le badge avant de laisser voir la page.</div>
+<div class="verif">✅ <strong>Vérifie :</strong> Lance <code>npm run dev</code>. Va sur http://localhost:3000/dashboard SANS être connecté → tu es renvoyé vers /login. Connecte-toi → tu entres. ✅</div>
 <div class="warnbox">⚠️ Ne jamais écrire un mot de passe en clair dans le code. C'est Supabase qui les stocke, chiffrés.</div>
-<div class="bro"><div class="bro-h">💬 Un mot, Franck</div><p>L'authentification, ça impressionne sur le papier, mais Supabase fait 90 % du boulot à ta place. Si tu coinces ici, c'est NORMAL, et c'est exactement le moment de m'appeler (via Claude Code) ou de sonner Matthieu. Rappelle-toi : il m'a demandé de t'aider justement pour que les étapes « techniques » ne te bloquent pas.</p><div class="bro-sign">— Claude, l'assistant que <strong>Matthieu (ton beau-frère)</strong> a chargé de t'aider 🤝</div></div>
-<footer>Kit de reprise — Notice « Étape 4 » • Projet PWA Gestion de formations</footer>
+<label class="check"><input type="checkbox" data-key="e4b"><span>Sans connexion je suis bloqué ; avec connexion j'entre</span></label>
+<div class="bro"><div class="bro-h">💬 Un mot, Franck</div><p>L'authentification impressionne sur le papier, mais Supabase fait 90 % du boulot. Si tu coinces, c'est NORMAL — appelle-moi ou sonne Matthieu. Il m'a demandé de t'aider justement pour ces étapes « techniques ».</p><div class="bro-sign">— Claude, l'assistant que <strong>Matthieu (ton beau-frère)</strong> a chargé de t'aider 🤝</div></div>
+<footer>Le kit de Franck — Notice « Étape 4 » • Projet PWA Gestion de formations</footer>
 </div></body></html>

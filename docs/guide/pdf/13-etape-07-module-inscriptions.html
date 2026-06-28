@@ -1,15 +1,19 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
-<title>Étape 7 — Module Inscriptions</title><style>
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Étape 7 — Module Inscriptions</title><style>
 :root{--blue:#1d4ed8;--slate:#0f172a;--grey:#475569;--line:#e2e8f0;--soft:#f8fafc;--green:#059669;--amber:#d97706;}
 *{box-sizing:border-box;}
-body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;background:#f1f5f9;}
 h2{font-size:20px;margin:22px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--line);}
 h3{font-size:16px;margin:18px 0 6px;color:var(--blue);}
-p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:4px 0;}
+p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:5px 0;}
+a.ext{color:var(--blue);word-break:break-all;font-weight:600;}
 code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:.92em;}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
 th{background:var(--blue);color:#fff;font-weight:600;} tr:nth-child(even) td{background:var(--soft);}
+ol.steps{counter-reset:s;list-style:none;padding-left:0;margin:10px 0;}
+ol.steps>li{counter-increment:s;position:relative;padding:8px 10px 8px 44px;border:1px solid var(--line);background:#fff;border-radius:8px;margin:7px 0;}
+ol.steps>li::before{content:counter(s);position:absolute;left:8px;top:8px;width:26px;height:26px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+.verif{background:#ecfdf5;border-left:4px solid var(--green);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
 .callout{background:#eff6ff;border-left:4px solid var(--blue);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
 .warnbox{background:#fffbeb;border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
 .decision{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:16px 0;}
@@ -23,10 +27,12 @@ pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflo
 pre code{background:none;color:inherit;padding:0;}
 .copy{position:absolute;top:8px;right:8px;background:#334155;color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;}
 .copy:hover{background:#475569;}
-.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px;margin:6px 0;cursor:pointer;}
+.prompt{border:1px dashed #94a3b8;border-radius:8px;padding:8px 10px;margin:12px 0;background:#fff;}
+.prompt-h{font-weight:600;color:#475569;font-size:13.5px;margin-bottom:4px;}
+.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:8px 0;cursor:pointer;}
 .check input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;}
 .check span{font-size:14.5px;}
-.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;}
+.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
 .pill.green{background:var(--green);}
 .bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
 .bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
@@ -37,25 +43,23 @@ pre code{background:none;color:inherit;padding:0;}
 .matt p{margin:4px 0;color:#1e3a5f;}
 .matt-sign{font-size:12.5px;color:#1e40af;margin-top:6px;font-style:italic;}
 
+body{background:#fff;}
 @page{margin:15mm;}
 .page{max-width:780px;margin:0 auto;padding:10px;}
 .cover{border-bottom:4px solid var(--blue);padding-bottom:12px;margin-bottom:16px;}
 .cover .kicker{color:var(--blue);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.06em;}
 .cover h1{font-size:23px;margin:6px 0 2px;} .cover .sub{color:var(--grey);font-size:13px;}
 .cover .meta{margin-top:8px;color:var(--grey);font-size:11px;}
-.check{break-inside:avoid;} table,.callout,.warnbox,.decision,.codewrap{break-inside:avoid;}
+ol.steps>li,.check,table,.callout,.warnbox,.verif,.decision,.codewrap,.prompt,.bro,.matt{break-inside:avoid;}
 footer{margin-top:24px;padding-top:10px;border-top:1px solid var(--line);color:var(--grey);font-size:10.5px;text-align:center;}
 </style></head><body><div class="page">
-<div class="cover"><div class="kicker">Kit de reprise — PWA Gestion de formations</div>
+<div class="cover"><div class="kicker">Le kit de Franck — PWA Gestion de formations</div>
 <h1>Étape 7 — Module Inscriptions</h1><div class="sub">Relier personne et formation</div>
-<div class="meta">Notice 13 / 23 &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
-<p>On relie une personne à une formation et on suit son statut.</p>
-<h3>Champs de l'inscription</h3>
-<p>Personne, formation, statut d'inscription, statut de présence, statut de paiement, commentaire.</p>
-<label class="check"><input type="checkbox" data-key="e7a"><span>Sur la fiche d'une personne, bouton « Inscrire à une formation »</span></label>
-<label class="check"><input type="checkbox" data-key="e7b"><span>Choisir la formation dans une liste déroulante</span></label>
-<label class="check"><input type="checkbox" data-key="e7c"><span>Pouvoir changer les 3 statuts (inscription, présence, paiement)</span></label>
-<div class="warnbox">⚠️ Empêche d'inscrire deux fois la même personne à la même formation (la base le bloque déjà ; affiche un message clair si ça arrive).</div>
-<label class="check"><input type="checkbox" data-key="e7d"><span>Je peux inscrire une personne et suivre ses statuts</span></label>
-<footer>Kit de reprise — Notice « Étape 7 » • Projet PWA Gestion de formations</footer>
+<div class="meta">Notice 13 / 24 &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
+<p>On relie une personne à une formation et on suit ses statuts.</p>
+<h3>Champs</h3><p>Personne, formation, statut d'inscription, statut de présence, statut de paiement, commentaire.</p>
+<div class="prompt"><div class="prompt-h">🤖 Prompt à copier-coller dans Codex (ou Claude Code)</div><div class="codewrap"><pre><code>Sur la fiche d'une personne (/people/[id]), ajoute un bouton « Inscrire à une formation » qui crée une ligne dans la table 'enrollments' (person_id, course_id, enrollment_status, attendance_status, payment_status, comment). Affiche la liste des inscriptions de la personne avec des menus pour changer les 3 statuts. Empêche d'inscrire deux fois la même personne à la même formation, avec un message clair. Explique comment tester.</code></pre></div></div>
+<div class="verif">✅ <strong>Vérifie :</strong> Depuis Sophie, je l'inscris à Excel ; je change son paiement de « impayé » à « payé » ; réessayer de l'inscrire à Excel affiche un message d'erreur clair. ✅</div>
+<label class="check"><input type="checkbox" data-key="e7"><span>Je peux inscrire une personne et suivre ses statuts</span></label>
+<footer>Le kit de Franck — Notice « Étape 7 » • Projet PWA Gestion de formations</footer>
 </div></body></html>

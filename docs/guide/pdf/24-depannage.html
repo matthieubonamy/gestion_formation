@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Glossaire & dépannage</title><style>
+:root{--blue:#1d4ed8;--slate:#0f172a;--grey:#475569;--line:#e2e8f0;--soft:#f8fafc;--green:#059669;--amber:#d97706;}
+*{box-sizing:border-box;}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;background:#f1f5f9;}
+h2{font-size:20px;margin:22px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--line);}
+h3{font-size:16px;margin:18px 0 6px;color:var(--blue);}
+p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:5px 0;}
+a.ext{color:var(--blue);word-break:break-all;font-weight:600;}
+code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:.92em;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:var(--blue);color:#fff;font-weight:600;} tr:nth-child(even) td{background:var(--soft);}
+ol.steps{counter-reset:s;list-style:none;padding-left:0;margin:10px 0;}
+ol.steps>li{counter-increment:s;position:relative;padding:8px 10px 8px 44px;border:1px solid var(--line);background:#fff;border-radius:8px;margin:7px 0;}
+ol.steps>li::before{content:counter(s);position:absolute;left:8px;top:8px;width:26px;height:26px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+.verif{background:#ecfdf5;border-left:4px solid var(--green);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.callout{background:#eff6ff;border-left:4px solid var(--blue);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.warnbox{background:#fffbeb;border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.decision{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:16px 0;}
+.decision-h{font-weight:700;color:#065f46;margin-bottom:4px;}
+.opts{display:grid;gap:8px;margin:10px 0;}
+.opt{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 12px;}
+.opt-h{font-weight:600;} .opt-b{font-size:14px;color:var(--grey);}
+.reco{background:#dcfce7;border-radius:6px;padding:8px 12px;font-size:14.5px;}
+.codewrap{position:relative;margin:10px 0;}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow:auto;font-size:13.5px;line-height:1.5;margin:0;}
+pre code{background:none;color:inherit;padding:0;}
+.copy{position:absolute;top:8px;right:8px;background:#334155;color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;}
+.copy:hover{background:#475569;}
+.prompt{border:1px dashed #94a3b8;border-radius:8px;padding:8px 10px;margin:12px 0;background:#fff;}
+.prompt-h{font-weight:600;color:#475569;font-size:13.5px;margin-bottom:4px;}
+.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:8px 0;cursor:pointer;}
+.check input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;}
+.check span{font-size:14.5px;}
+.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
+.pill.green{background:var(--green);}
+.bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
+.bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
+.bro p{margin:4px 0;color:#451a03;}
+.bro-sign{font-size:12.5px;color:#92400e;margin-top:6px;font-style:italic;}
+.matt{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #93c5fd;border-radius:10px;padding:12px 16px;margin:16px 0;}
+.matt-h{font-weight:700;color:#1e40af;margin-bottom:2px;}
+.matt p{margin:4px 0;color:#1e3a5f;}
+.matt-sign{font-size:12.5px;color:#1e40af;margin-top:6px;font-style:italic;}
+
+body{background:#fff;}
+@page{margin:15mm;}
+.page{max-width:780px;margin:0 auto;padding:10px;}
+.cover{border-bottom:4px solid var(--blue);padding-bottom:12px;margin-bottom:16px;}
+.cover .kicker{color:var(--blue);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.06em;}
+.cover h1{font-size:23px;margin:6px 0 2px;} .cover .sub{color:var(--grey);font-size:13px;}
+.cover .meta{margin-top:8px;color:var(--grey);font-size:11px;}
+ol.steps>li,.check,table,.callout,.warnbox,.verif,.decision,.codewrap,.prompt,.bro,.matt{break-inside:avoid;}
+footer{margin-top:24px;padding-top:10px;border-top:1px solid var(--line);color:var(--grey);font-size:10.5px;text-align:center;}
+</style></head><body><div class="page">
+<div class="cover"><div class="kicker">Le kit de Franck — PWA Gestion de formations</div>
+<h1>Glossaire & dépannage</h1><div class="sub">Les mots qui font peur + les erreurs fréquentes</div>
+<div class="meta">Notice 24 / 24 &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
+
+<h3>Glossaire express</h3>
+<table><thead><tr><th>Mot</th><th>Traduction simple</th></tr></thead><tbody><tr><td>Frontend</td><td>Ce qu'on voit (écrans, boutons)</td></tr><tr><td>Backend</td><td>Le cerveau caché (règles, enregistrement)</td></tr><tr><td>Base de données</td><td>Le grand classeur des données</td></tr><tr><td>Repo / dépôt</td><td>Le dossier du projet avec son historique</td></tr><tr><td>Commit</td><td>Une photo enregistrée d'un avancement</td></tr><tr><td>Push</td><td>Envoyer ses commits sur GitHub</td></tr><tr><td>Clone</td><td>Télécharger une copie du projet liée au dépôt</td></tr><tr><td>Déployer</td><td>Mettre l'app en ligne</td></tr><tr><td>Variable d'environnement</td><td>Un réglage secret (clé) rangé hors du code</td></tr><tr><td>Localhost</td><td>Ton ordinateur ; l'app tourne juste pour toi</td></tr></tbody></table>
+<h3>Problèmes fréquents et solutions</h3>
+<table><thead><tr><th>Symptôme</th><th>Cause probable → Solution</th></tr></thead><tbody><tr><td>« n'est pas reconnu » / « command not found »</td><td>Logiciel pas installé ou terminal pas redémarré → ferme et rouvre le terminal, revérifie l'installation.</td></tr><tr><td>npm run dev échoue</td><td>Briques manquantes → lance <code>npm install</code> puis réessaie.</td></tr><tr><td>Page blanche / erreur Supabase</td><td>Clés .env.local manquantes ou fausses → recopie-les depuis Supabase (Settings → API).</td></tr><tr><td>« Invalid login credentials »</td><td>Mauvais email/mot de passe, ou compte admin pas créé → vérifie Authentication dans Supabase.</td></tr><tr><td>Projet Supabase « paused »</td><td>Plan gratuit en pause après 1 semaine → clique « Restore » dans le dashboard Supabase.</td></tr><tr><td>Déploiement Vercel échoue</td><td>Variables d'environnement oubliées → ajoute-les dans Vercel → Settings → Environment Variables → Redeploy.</td></tr></tbody></table>
+<div class="callout">Règle d'or du dépannage : <strong>lis le message d'erreur en entier</strong> (il dit souvent quoi faire), puis colle-le à Claude Code en demandant « explique-moi cette erreur simplement et corrige-la ».</div>
+<h3>Où trouver de l'aide</h3>
+<ul>
+<li>Doc Supabase : <a class="ext" href="https://supabase.com/docs" target="_blank" rel="noopener">supabase.com/docs</a> — Doc Vercel : <a class="ext" href="https://vercel.com/docs" target="_blank" rel="noopener">vercel.com/docs</a>.</li>
+<li>Claude Code : <a class="ext" href="https://code.claude.com" target="_blank" rel="noopener">code.claude.com</a> — ouvre le dépôt et décris ton blocage.</li>
+<li><strong>Matthieu</strong>, ton beau-frère : il m'a demandé de t'aider et il s'y connaît en dev — parfait pour un coup de main technique.</li>
+</ul>
+<div class="bro"><div class="bro-h">💬 Un mot, Franck</div><p>Dernier rappel : <strong>demander de l'aide n'est pas tricher</strong>, c'est la bonne méthode. Utilise-moi à fond, et sollicite Matthieu sans gêne. Un blocage partagé, c'est un blocage à moitié résolu. On est une équipe, Franck.</p><div class="bro-sign">— Claude, l'assistant que <strong>Matthieu (ton beau-frère)</strong> a chargé de t'aider 🤝</div></div>
+
+<footer>Le kit de Franck — Notice « Aide » • Projet PWA Gestion de formations</footer>
+</div></body></html>

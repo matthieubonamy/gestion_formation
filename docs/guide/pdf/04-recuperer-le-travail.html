@@ -1,0 +1,87 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Récupérer le travail déjà fait</title><style>
+:root{--blue:#1d4ed8;--slate:#0f172a;--grey:#475569;--line:#e2e8f0;--soft:#f8fafc;--green:#059669;--amber:#d97706;}
+*{box-sizing:border-box;}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;background:#f1f5f9;}
+h2{font-size:20px;margin:22px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--line);}
+h3{font-size:16px;margin:18px 0 6px;color:var(--blue);}
+p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:5px 0;}
+a.ext{color:var(--blue);word-break:break-all;font-weight:600;}
+code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:.92em;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:var(--blue);color:#fff;font-weight:600;} tr:nth-child(even) td{background:var(--soft);}
+ol.steps{counter-reset:s;list-style:none;padding-left:0;margin:10px 0;}
+ol.steps>li{counter-increment:s;position:relative;padding:8px 10px 8px 44px;border:1px solid var(--line);background:#fff;border-radius:8px;margin:7px 0;}
+ol.steps>li::before{content:counter(s);position:absolute;left:8px;top:8px;width:26px;height:26px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+.verif{background:#ecfdf5;border-left:4px solid var(--green);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.callout{background:#eff6ff;border-left:4px solid var(--blue);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.warnbox{background:#fffbeb;border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.decision{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:16px 0;}
+.decision-h{font-weight:700;color:#065f46;margin-bottom:4px;}
+.opts{display:grid;gap:8px;margin:10px 0;}
+.opt{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 12px;}
+.opt-h{font-weight:600;} .opt-b{font-size:14px;color:var(--grey);}
+.reco{background:#dcfce7;border-radius:6px;padding:8px 12px;font-size:14.5px;}
+.codewrap{position:relative;margin:10px 0;}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow:auto;font-size:13.5px;line-height:1.5;margin:0;}
+pre code{background:none;color:inherit;padding:0;}
+.copy{position:absolute;top:8px;right:8px;background:#334155;color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;}
+.copy:hover{background:#475569;}
+.prompt{border:1px dashed #94a3b8;border-radius:8px;padding:8px 10px;margin:12px 0;background:#fff;}
+.prompt-h{font-weight:600;color:#475569;font-size:13.5px;margin-bottom:4px;}
+.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:8px 0;cursor:pointer;}
+.check input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;}
+.check span{font-size:14.5px;}
+.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
+.pill.green{background:var(--green);}
+.bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
+.bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
+.bro p{margin:4px 0;color:#451a03;}
+.bro-sign{font-size:12.5px;color:#92400e;margin-top:6px;font-style:italic;}
+.matt{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #93c5fd;border-radius:10px;padding:12px 16px;margin:16px 0;}
+.matt-h{font-weight:700;color:#1e40af;margin-bottom:2px;}
+.matt p{margin:4px 0;color:#1e3a5f;}
+.matt-sign{font-size:12.5px;color:#1e40af;margin-top:6px;font-style:italic;}
+
+body{background:#fff;}
+@page{margin:15mm;}
+.page{max-width:780px;margin:0 auto;padding:10px;}
+.cover{border-bottom:4px solid var(--blue);padding-bottom:12px;margin-bottom:16px;}
+.cover .kicker{color:var(--blue);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.06em;}
+.cover h1{font-size:23px;margin:6px 0 2px;} .cover .sub{color:var(--grey);font-size:13px;}
+.cover .meta{margin-top:8px;color:var(--grey);font-size:11px;}
+ol.steps>li,.check,table,.callout,.warnbox,.verif,.decision,.codewrap,.prompt,.bro,.matt{break-inside:avoid;}
+footer{margin-top:24px;padding-top:10px;border-top:1px solid var(--line);color:var(--grey);font-size:10.5px;text-align:center;}
+</style></head><body><div class="page">
+<div class="cover"><div class="kicker">Le kit de Franck — PWA Gestion de formations</div>
+<h1>Récupérer le travail déjà fait</h1><div class="sub">Depuis le téléphone/navigateur OU depuis ton PC — pas à pas</div>
+<div class="meta">Notice 04 / 24 &nbsp;•&nbsp; Guide perso pour Franck &nbsp;•&nbsp; juin 2026</div></div>
+
+<p>Une partie est <strong>déjà faite</strong> : l'analyse du besoin (Étape 1) et le schéma de base de données (Étape 2). Tout est rangé dans un <strong>dépôt Git</strong> sur GitHub.</p>
+<div class="callout"><strong>Dépôt (repo).</strong> Un dossier de projet avec tout son historique, hébergé sur GitHub. Le nôtre : <code>matthieubonamy/gestion_formation</code>, branche <code>claude/training-management-pwa-5ibmi2</code>.</div>
+
+<h2>Chemin A — Sans rien installer (téléphone ou PC)</h2>
+<ol class="steps"><li>Crée ton compte GitHub (page précédente).</li><li>Envoie ton <strong>nom d'utilisateur GitHub</strong> à Matthieu et demande-lui de t'ajouter au dépôt.</li><li>Matthieu, lui, va sur <a class="ext" href="https://github.com/matthieubonamy/gestion_formation/settings/access" target="_blank" rel="noopener">Settings → Collaborators</a> du dépôt, clique <strong>Add people</strong>, colle ton nom d'utilisateur, et t'invite.</li><li>Tu reçois un email d'invitation : clique <strong>Accept invitation</strong>.</li><li>Tu peux maintenant <strong>ouvrir le dépôt dans le navigateur</strong> et lire les fichiers (dossiers <code>docs/</code> et <code>db/</code>).</li></ol>
+<div class="verif">✅ <strong>Vérifie :</strong> Tu vois la liste des fichiers du projet sur github.com → tu as bien accès ✅.</div>
+<div class="callout"><strong>Coder depuis le navigateur ?</strong> Le projet a été démarré avec <strong>Claude Code sur le web</strong> (<a class="ext" href="https://code.claude.com" target="_blank" rel="noopener">code.claude.com</a>). Tu peux y ouvrir le même dépôt et <em>demander à l'assistant</em> de continuer une étape, même depuis un téléphone. Autre option : <strong>GitHub Codespaces</strong> (un PC de dev dans le navigateur, gratuit ~60 h/mois).</div>
+<div class="warnbox">⚠️ Sur téléphone, on lit et on pilote l'assistant, mais taper du code à la main est inconfortable. Pour coder vraiment, passe au Chemin B.</div>
+<label class="check"><input type="checkbox" data-key="repo-access"><span>J'ai accès au dépôt (via une invitation de Matthieu)</span></label>
+
+<h2>Chemin B — Sur ton PC Windows (pour coder)</h2>
+<ol class="steps"><li>Ouvre l'Invite de commandes (menu Démarrer → tape <code>cmd</code>).</li><li>Place-toi dans ton dossier Documents :</li></ol>
+<div class="codewrap"><pre><code>cd Documents</code></pre></div>
+<ol class="steps"><li>Télécharge une copie du projet (= « cloner ») :</li></ol>
+<div class="codewrap"><pre><code>git clone https://github.com/matthieubonamy/gestion_formation.git</code></pre></div>
+<ol class="steps"><li>Entre dans le dossier et place-toi sur la branche de travail :</li></ol>
+<div class="codewrap"><pre><code>cd gestion_formation
+git checkout claude/training-management-pwa-5ibmi2</code></pre></div>
+<div class="verif">✅ <strong>Vérifie :</strong> Tape <code>dir</code> : tu dois voir les dossiers <code>docs</code> et <code>db</code>. Tu as bien le projet ✅.</div>
+<div class="callout">Au premier <code>git clone</code>, GitHub peut te demander de te connecter : une fenêtre s'ouvre, clique « Sign in with your browser » et connecte-toi avec ton compte GitHub.</div>
+<label class="check"><input type="checkbox" data-key="repo-cloned"><span>J'ai cloné le projet sur mon PC et je suis sur la bonne branche</span></label>
+
+<h3>Variante : tout recréer de zéro (pour apprendre)</h3>
+<p>Si tu préfères <strong>tout reconstruire toi-même</strong>, tu n'as pas besoin de cloner : suis simplement les pages des Étapes 1 à 15 dans l'ordre, en repartant d'un dossier vide. Les fichiers déjà faits (<code>docs/</code> et <code>db/schema.sql</code>) te serviront de <strong>modèle</strong>.</p>
+<div class="bro"><div class="bro-h">💬 Un mot, Franck</div><p>Pour l'accès au dépôt, un simple message à Matthieu suffit — il a les droits et m'a dit de te dire de ne pas hésiter. Le plus dur, c'est souvent juste d'oser demander. Tu peux. 🙂</p><div class="bro-sign">— Claude, l'assistant que <strong>Matthieu (ton beau-frère)</strong> a chargé de t'aider 🤝</div></div>
+
+<footer>Le kit de Franck — Notice « Reprise » • Projet PWA Gestion de formations</footer>
+</div></body></html>

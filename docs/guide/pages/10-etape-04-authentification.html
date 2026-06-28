@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Étape 4 — Authentification (connexion admin) — Kit de Franck</title>
+<style>
+:root{--blue:#1d4ed8;--slate:#0f172a;--grey:#475569;--line:#e2e8f0;--soft:#f8fafc;--green:#059669;--amber:#d97706;}
+*{box-sizing:border-box;}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--slate);line-height:1.6;margin:0;font-size:16px;background:#f1f5f9;}
+h2{font-size:20px;margin:22px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--line);}
+h3{font-size:16px;margin:18px 0 6px;color:var(--blue);}
+p{margin:8px 0;} ul{margin:8px 0;padding-left:22px;} li{margin:5px 0;}
+a.ext{color:var(--blue);word-break:break-all;font-weight:600;}
+code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:.92em;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:var(--blue);color:#fff;font-weight:600;} tr:nth-child(even) td{background:var(--soft);}
+ol.steps{counter-reset:s;list-style:none;padding-left:0;margin:10px 0;}
+ol.steps>li{counter-increment:s;position:relative;padding:8px 10px 8px 44px;border:1px solid var(--line);background:#fff;border-radius:8px;margin:7px 0;}
+ol.steps>li::before{content:counter(s);position:absolute;left:8px;top:8px;width:26px;height:26px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+.verif{background:#ecfdf5;border-left:4px solid var(--green);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.callout{background:#eff6ff;border-left:4px solid var(--blue);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.warnbox{background:#fffbeb;border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:14.5px;}
+.decision{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:16px 0;}
+.decision-h{font-weight:700;color:#065f46;margin-bottom:4px;}
+.opts{display:grid;gap:8px;margin:10px 0;}
+.opt{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 12px;}
+.opt-h{font-weight:600;} .opt-b{font-size:14px;color:var(--grey);}
+.reco{background:#dcfce7;border-radius:6px;padding:8px 12px;font-size:14.5px;}
+.codewrap{position:relative;margin:10px 0;}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow:auto;font-size:13.5px;line-height:1.5;margin:0;}
+pre code{background:none;color:inherit;padding:0;}
+.copy{position:absolute;top:8px;right:8px;background:#334155;color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;}
+.copy:hover{background:#475569;}
+.prompt{border:1px dashed #94a3b8;border-radius:8px;padding:8px 10px;margin:12px 0;background:#fff;}
+.prompt-h{font-weight:600;color:#475569;font-size:13.5px;margin-bottom:4px;}
+.check{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:8px 0;cursor:pointer;}
+.check input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;}
+.check span{font-size:14.5px;}
+.pill{display:inline-block;color:#fff;font-size:11px;padding:1px 8px;border-radius:10px;vertical-align:middle;background:var(--blue);}
+.pill.green{background:var(--green);}
+.bro{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin:16px 0;}
+.bro-h{font-weight:700;color:#92400e;margin-bottom:2px;}
+.bro p{margin:4px 0;color:#451a03;}
+.bro-sign{font-size:12.5px;color:#92400e;margin-top:6px;font-style:italic;}
+.matt{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #93c5fd;border-radius:10px;padding:12px 16px;margin:16px 0;}
+.matt-h{font-weight:700;color:#1e40af;margin-bottom:2px;}
+.matt p{margin:4px 0;color:#1e3a5f;}
+.matt-sign{font-size:12.5px;color:#1e40af;margin-top:6px;font-style:italic;}
+
+.topbar{position:sticky;top:0;z-index:30;background:var(--blue);color:#fff;display:flex;align-items:center;gap:12px;padding:10px 14px;}
+.topbar h1{font-size:15px;margin:0;flex:1;}
+.burger{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:18px;border-radius:6px;padding:4px 10px;cursor:pointer;}
+.progress{height:6px;background:rgba(255,255,255,.25);} .progress>div{height:100%;background:#a7f3d0;width:0;transition:width .3s;}
+.plabel{font-size:11px;color:#475569;padding:4px 14px;background:#fff;border-bottom:1px solid var(--line);}
+.layout{display:flex;max-width:1100px;margin:0 auto;}
+.sidebar{width:280px;flex:0 0 auto;background:#fff;border-right:1px solid var(--line);padding:10px;height:calc(100vh - 52px);position:sticky;top:52px;overflow:auto;}
+.navlink{display:block;padding:7px 10px;border-radius:6px;color:var(--slate);text-decoration:none;font-size:13px;border-left:3px solid transparent;}
+.navlink:hover{background:var(--soft);} .navlink.active{background:#eff6ff;border-left-color:var(--blue);font-weight:600;}
+.navtag{display:block;font-size:10px;color:var(--blue);font-weight:700;text-transform:uppercase;}
+.content{flex:1;min-width:0;padding:18px 22px 40px;}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;}
+.crumb{font-size:12px;color:var(--blue);font-weight:700;text-transform:uppercase;}
+.navbar{display:flex;justify-content:space-between;gap:10px;margin-top:24px;}
+.navbtn{display:inline-block;padding:11px 16px;border-radius:8px;background:#fff;border:1px solid var(--line);color:var(--slate);text-decoration:none;font-weight:600;font-size:14px;}
+.navbtn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+@media(max-width:820px){
+ .sidebar{position:fixed;left:0;top:52px;z-index:25;transform:translateX(-100%);transition:transform .25s;box-shadow:2px 0 12px rgba(0,0,0,.15);width:84%;max-width:320px;}
+ .sidebar.open{transform:translateX(0);} .content{padding:14px;} body{font-size:15.5px;}
+}
+@media(min-width:821px){ .burger{display:none;} }
+</style></head><body>
+<div class="topbar"><button class="burger" id="burger">☰</button><h1>Le kit de Franck — Étape 4</h1></div>
+<div class="progress"><div id="pbar"></div></div>
+<div class="plabel" id="plabel"></div>
+<div class="layout">
+ <aside class="sidebar" id="sidebar"><a href="00-bienvenue.html" class="navlink"><span class="navtag">Départ</span>Salut Franck 👋</a><a href="01-le-projet.html" class="navlink"><span class="navtag">Comprendre</span>Le projet en 1 page</a><a href="02-installer-outils.html" class="navlink"><span class="navtag">Installation</span>Installer les outils sur ton PC Windows</a><a href="03-creer-comptes.html" class="navlink"><span class="navtag">Comptes</span>Créer tes 3 comptes (clic par clic)</a><a href="04-recuperer-le-travail.html" class="navlink"><span class="navtag">Reprise</span>Récupérer le travail déjà fait</a><a href="05-les-decisions.html" class="navlink"><span class="navtag">Décisions</span>Les décisions à prendre</a><a href="06-les-couts.html" class="navlink"><span class="navtag">Budget</span>Combien ça coûte ? (court / moyen / long terme)</a><a href="07-etape-01-analyse-besoin.html" class="navlink"><span class="navtag">Étape 1</span>Étape 1 — Analyse du besoin</a><a href="08-etape-02-schema-bdd.html" class="navlink"><span class="navtag">Étape 2</span>Étape 2 — Schéma de base de données</a><a href="09-etape-03-creation-projet.html" class="navlink"><span class="navtag">Étape 3</span>Étape 3 — Création du projet</a><a href="10-etape-04-authentification.html" class="navlink active"><span class="navtag">Étape 4</span>Étape 4 — Authentification (connexion admin)</a><a href="11-etape-05-module-personnes.html" class="navlink"><span class="navtag">Étape 5</span>Étape 5 — Module Personnes</a><a href="12-etape-06-module-formations.html" class="navlink"><span class="navtag">Étape 6</span>Étape 6 — Module Formations</a><a href="13-etape-07-module-inscriptions.html" class="navlink"><span class="navtag">Étape 7</span>Étape 7 — Module Inscriptions</a><a href="14-etape-08-mini-crm.html" class="navlink"><span class="navtag">Étape 8</span>Étape 8 — Mini-CRM (relances)</a><a href="15-etape-09-tableau-de-bord.html" class="navlink"><span class="navtag">Étape 9</span>Étape 9 — Tableau de bord</a><a href="16-etape-10-export-csv.html" class="navlink"><span class="navtag">Étape 10</span>Étape 10 — Export CSV</a><a href="17-etape-11-securite.html" class="navlink"><span class="navtag">Étape 11</span>Étape 11 — Sécurité minimale</a><a href="18-etape-12-rgpd.html" class="navlink"><span class="navtag">Étape 12</span>Étape 12 — RGPD simple</a><a href="19-etape-13-tests.html" class="navlink"><span class="navtag">Étape 13</span>Étape 13 — Tests</a><a href="20-etape-14-deploiement.html" class="navlink"><span class="navtag">Étape 14</span>Étape 14 — Déploiement (mise en ligne)</a><a href="21-etape-15-documentation.html" class="navlink"><span class="navtag">Étape 15</span>Étape 15 — Documentation</a><a href="22-prompts-codex.html" class="navlink"><span class="navtag">Boîte à prompts</span>Tous tes prompts prêts à l'emploi (Codex)</a><a href="23-agents-ia.html" class="navlink"><span class="navtag">Aller plus loin</span>Te faire aider par des agents IA</a><a href="24-depannage.html" class="navlink"><span class="navtag">Aide</span>Glossaire & dépannage</a></aside>
+ <main class="content">
+   <div class="card">
+     <div class="crumb">Étape 4 — page 11 / 25</div>
+     <h2 style="border:none;margin:6px 0 2px">Étape 4 — Authentification (connexion admin)</h2>
+     <div style="color:var(--grey);font-size:14px;margin-bottom:8px">Le portier de l'app</div>
+     <p>On met une page de connexion et on protège les autres pages.</p>
+<h3>1) Créer ton compte admin dans Supabase (clic par clic)</h3>
+<ol class="steps"><li>Dashboard Supabase → menu de gauche <strong>« Authentication »</strong> → onglet <strong>« Users »</strong>.</li><li>Clique <strong>« Add user »</strong> → <strong>« Create new user »</strong>.</li><li>Saisis ton <strong>email</strong> et un <strong>mot de passe</strong> (note-le), coche « Auto Confirm User », clique <strong>Create user</strong>.</li></ol>
+<div class="verif">✅ <strong>Vérifie :</strong> Ton email apparaît dans la liste des utilisateurs ✅.</div>
+<label class="check"><input type="checkbox" data-key="e4a"><span>Mon compte admin existe dans Supabase</span></label>
+<h3>2) Créer la page de connexion + la protection</h3>
+<p>Là, c'est du code. Le plus simple et fiable pour un débutant : demander à Claude Code de l'écrire, puis vérifier.</p>
+<div class="prompt"><div class="prompt-h">🤖 Prompt à copier-coller dans Codex (ou Claude Code)</div><div class="codewrap"><button class="copy" type="button">Copier</button><pre><code>Dans ce projet Next.js (App Router) avec @supabase/ssr déjà installé, crée une page de connexion sur /login (email + mot de passe) qui utilise Supabase Auth, et un middleware qui protège toutes les pages sauf /login en redirigeant les visiteurs non connectés vers /login. Ajoute aussi un bouton de déconnexion. Explique-moi simplement ce que tu as créé.</code></pre></div></div>
+<div class="callout">Un <strong>middleware</strong> est un videur à l'entrée : il vérifie le badge avant de laisser voir la page.</div>
+<div class="verif">✅ <strong>Vérifie :</strong> Lance <code>npm run dev</code>. Va sur http://localhost:3000/dashboard SANS être connecté → tu es renvoyé vers /login. Connecte-toi → tu entres. ✅</div>
+<div class="warnbox">⚠️ Ne jamais écrire un mot de passe en clair dans le code. C'est Supabase qui les stocke, chiffrés.</div>
+<label class="check"><input type="checkbox" data-key="e4b"><span>Sans connexion je suis bloqué ; avec connexion j'entre</span></label>
+<div class="bro"><div class="bro-h">💬 Un mot, Franck</div><p>L'authentification impressionne sur le papier, mais Supabase fait 90 % du boulot. Si tu coinces, c'est NORMAL — appelle-moi ou sonne Matthieu. Il m'a demandé de t'aider justement pour ces étapes « techniques ».</p><div class="bro-sign">— Claude, l'assistant que <strong>Matthieu (ton beau-frère)</strong> a chargé de t'aider 🤝</div></div>
+     <div class="navbar"><a class="navbtn" href="09-etape-03-creation-projet.html">◀ Précédent</a><a class="navbtn primary" href="11-etape-05-module-personnes.html">Suivant ▶</a></div>
+   </div>
+ </main>
+</div>
+<script>
+document.querySelectorAll('.copy').forEach(function(b){b.addEventListener('click',function(){var c=b.parentElement.querySelector('code').innerText;navigator.clipboard.writeText(c).then(function(){b.textContent='Copié ✓';setTimeout(function(){b.textContent='Copier';},1500);});});});
+var ALL=["welcome-read","project-understood","node-ok","git-ok","vscode-ok","github-ok","supabase-ok","vercel-ok","repo-access","repo-cloned","decisions-noted","costs-understood","e1","e2","e3a","e3b","e4a","e4b","e5","e6","e7","e8","e9","e10","e11","e12","e13","e14","e15a","e15b","codex-ready","ia-ok"];
+function refresh(){var done=0;ALL.forEach(function(k){if(localStorage.getItem('gf_'+k)==='1')done++;});var pct=ALL.length?Math.round(done/ALL.length*100):0;var bar=document.getElementById('pbar');if(bar)bar.style.width=pct+'%';var lbl=document.getElementById('plabel');if(lbl)lbl.textContent=done+' / '+ALL.length+' étapes cochées ('+pct+'%)';}
+document.querySelectorAll('input[data-key]').forEach(function(b){var k='gf_'+b.dataset.key;if(localStorage.getItem(k)==='1')b.checked=true;b.addEventListener('change',function(){localStorage.setItem(k,b.checked?'1':'0');refresh();});});
+refresh();
+var burger=document.getElementById('burger'),sb=document.getElementById('sidebar');
+if(burger)burger.addEventListener('click',function(){sb.classList.toggle('open');});
+document.querySelectorAll('.navlink').forEach(function(a){a.addEventListener('click',function(){if(sb)sb.classList.remove('open');});});
+</script>
+</body></html>
